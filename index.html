@@ -117,6 +117,31 @@ button .btn-icon{display:inline-block;margin-right:6px;font-size:15px;line-heigh
 .result-actions{display:grid;grid-template-columns:1.2fr 1fr;gap:9px}
 .result-actions button{width:100%}
 @media(max-width:390px){main{padding:60px 13px 20px;gap:13px}.brand-mark{width:43px;height:43px;flex-basis:43px;border-radius:14px}.subtitle{font-size:9px;letter-spacing:1.1px}.badge{font-size:10px;padding:8px 9px}.game-status{padding:15px}.card{padding:14px}.board-shell{padding:6px}.controls{gap:8px}button{padding:12px 8px;font-size:12px}.result-dialog{padding:24px 17px 19px}.player-chip{padding:10px 8px;gap:7px}.player-disc{width:23px;height:23px;flex-basis:23px}.turn-tag{display:none}}
+@media(max-width:600px){
+ html,body{height:100%;min-height:0}
+ body{height:100svh;height:100dvh;min-height:0;overflow:hidden;overscroll-behavior:none}
+ main{height:100svh;height:100dvh;min-height:0;width:100%;max-width:100%;padding:calc(56px + env(safe-area-inset-top)) 9px calc(6px + env(safe-area-inset-bottom));gap:0;overflow:hidden}
+ main[data-menu-open="true"]{overflow:visible}
+ .board-pane{flex:1 1 auto;min-height:0;gap:7px}
+ .board-actions{padding:5px;gap:6px}
+ .board-actions button{min-height:39px;padding:8px 5px;font-size:12px;border-radius:11px}
+ .board-pane .game-status{padding:6px 10px}
+ .board-pane .game-status .status{font-size:16px;line-height:1.2}
+ .board-pane .game-status .hint{font-size:11px;line-height:1.2;margin-top:3px}
+ .board-color{padding:6px 8px}
+ .board-color-title{font-size:12px;margin:0 0 4px}
+ .board-color .color-options{gap:6px}
+ .board-color .color-option{min-height:38px;padding:4px 5px;gap:5px;border-radius:10px}
+ .board-color .color-option input{width:15px;height:15px;flex:0 0 15px}
+ .board-color .color-preview span{width:14px;height:14px}
+ .board-color .color-option strong{font-size:11px}
+ .board-color .color-option small{font-size:9px;line-height:1.05;white-space:normal}
+ #applySettings{min-height:34px!important;margin-top:5px!important;padding:7px 8px;font-size:11px}
+ .board-shell{flex:1 1 0;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;padding:4px;border-radius:15px;box-shadow:0 8px 20px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.15)}
+ .board{width:min(100%,calc(100dvh - 255px));max-width:100%;max-height:100%;aspect-ratio:1}
+ .cell.move:after{box-shadow:none;animation:none}
+ .piece{box-shadow:inset 0 -3px 0 rgba(0,0,0,.23),inset 0 1px 2px rgba(255,255,255,.45),0 2px 4px rgba(31,16,9,.32)}
+}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 </style>
