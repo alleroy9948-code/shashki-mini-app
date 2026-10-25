@@ -12,8 +12,26 @@
 html{min-height:100%;background:var(--bg)}
 body{margin:0;min-height:100vh;min-height:100svh;display:flex;justify-content:center;color:var(--text);font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:radial-gradient(ellipse at 14% 0%,rgba(57,96,163,.27),transparent 33%),radial-gradient(ellipse at 100% 38%,rgba(39,129,115,.12),transparent 35%),linear-gradient(155deg,#0b1222 0%,#080d19 62%,#0b1424 100%);overflow-x:hidden}
 body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;background-image:linear-gradient(rgba(171,197,232,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(171,197,232,.055) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,#000,transparent 75%)}
-main{position:relative;z-index:1;width:min(100%,560px);padding:clamp(15px,4vw,24px);padding-bottom:26px;display:flex;flex-direction:column;gap:16px}
+main{position:relative;z-index:1;width:min(100%,780px);padding:clamp(15px,4vw,24px);padding-bottom:26px;display:flex;flex-direction:column;gap:16px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:3px 2px 5px}
+.tabbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:5px;border:1px solid var(--line);border-radius:16px;background:rgba(13,22,38,.88)}
+.tab-button{min-height:44px;border:1px solid transparent;background:transparent;box-shadow:none;color:var(--muted);font-weight:850}
+.tab-button.active{color:#06271d;background:linear-gradient(135deg,#8af3c9,#53dca8);border-color:rgba(177,255,221,.75)}
+.settings-panel{display:none}
+main[data-tab="settings"] .game-only{display:none!important}
+main[data-tab="settings"] .settings-panel{display:block}
+.settings-title{font-size:20px;font-weight:850;letter-spacing:-.4px}
+.settings-copy{color:var(--muted);font-size:13px;margin:6px 0 18px}
+.setting-label{display:block;font-weight:800;margin:0 0 10px}
+.color-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.color-option{display:flex;align-items:center;gap:12px;min-height:74px;padding:13px;border:1px solid var(--line);border-radius:15px;background:rgba(10,18,31,.72);cursor:pointer}
+.color-option:has(input:checked){border-color:rgba(99,230,180,.75);background:rgba(33,75,65,.38);box-shadow:inset 0 0 0 1px rgba(99,230,180,.12)}
+.color-option input{accent-color:var(--mint);width:18px;height:18px}
+.color-preview{display:flex;gap:4px}
+.color-preview span{display:block;width:22px;height:22px;border-radius:50%;border:2px solid #ffffff66;box-shadow:inset 0 -3px 0 #0003}
+.color-preview .light-piece{background:linear-gradient(145deg,#fff,#cbd5e2)}
+.color-preview .dark-piece{background:linear-gradient(145deg,#53647e,#101725)}
+.setting-note{margin-top:14px;padding:12px 13px;border:1px solid var(--line);border-radius:13px;color:var(--muted);font-size:12px;line-height:1.55}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
 .brand-mark{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border:1px solid rgba(122,236,202,.3);border-radius:16px;background:linear-gradient(145deg,rgba(99,230,180,.18),rgba(52,102,122,.14));box-shadow:inset 0 1px rgba(255,255,255,.07),0 8px 22px #0004;color:var(--mint);font-size:27px}
 .brand-copy{min-width:0}
@@ -92,11 +110,13 @@ button .btn-icon{display:inline-block;margin-right:6px;font-size:15px;line-heigh
 </head>
 <body><main>
 <div class="top"><div class="brand"><div class="brand-mark" aria-hidden="true">♟</div><div class="brand-copy"><div class="title">Шашки</div><div class="subtitle">РУССКАЯ КЛАССИКА · 8×8</div></div></div><div class="badge"><span class="live-dot"></span> 1 на 1</div></div>
-<section class="card game-status"><div class="status" id="status">Ход белых</div><div class="hint" id="hint">Выберите шашку, затем клетку для хода.</div></section>
-<section class="players-strip" aria-label="Участники партии"><div class="player-chip" id="playerWhite"><span class="player-disc white-disc" aria-hidden="true"></span><span class="player-copy"><strong>Белые</strong><small id="labelWhite">Вы</small></span><span class="turn-tag">ХОД</span></div><div class="player-chip" id="playerBlack"><span class="player-disc black-disc" aria-hidden="true"></span><span class="player-copy"><strong>Чёрные</strong><small id="labelBlack">Компьютер</small></span><span class="turn-tag">ХОД</span></div></section>
-<section class="board-shell"><div class="board" id="board" aria-label="Игровая доска"></div></section>
-<section class="card controls"><button class="primary" id="new"><span class="btn-icon">↻</span>Новая игра</button><button id="mode"><span class="btn-icon">♟</span>Режим: против компьютера</button><button id="online"><span class="btn-icon">↗</span>Играть с другом онлайн</button><button id="undo"><span class="btn-icon">↶</span>Отменить ход</button><button id="flip"><span class="btn-icon">⇄</span>Перевернуть доску</button></section>
-<section class="card" id="onlinePanel" hidden><div class="status">Игра с другом онлайн</div><div class="hint" id="onlineInfo">Создайте комнату или подключитесь по коду/ссылке.</div><input id="roomCode" placeholder="Код комнаты или ID друга" style="width:100%;margin:10px 0;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><input id="inviteLink" readonly placeholder="Ссылка появится после создания комнаты" style="width:100%;margin:0 0 10px;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><div class="controls"><button class="primary" id="createRoom">Создать комнату</button><button id="joinRoom">Подключиться</button><button id="copyInvite">Копировать ссылку</button><button id="shareInvite">Пригласить друга</button><button id="closeOnline">Выйти из онлайн-игры</button></div></section>
+<nav class="tabbar" role="tablist" aria-label="Разделы игры"><button type="button" class="tab-button active" id="gameTab" role="tab" aria-selected="true">♟ Игра</button><button type="button" class="tab-button" id="settingsTab" role="tab" aria-selected="false">⚙ Настройки</button></nav>
+<section class="card settings-panel" id="settingsPanel" role="tabpanel"><div class="settings-title">Настройки партии</div><div class="settings-copy">Выберите цвет шашек, которыми будете играть против компьютера.</div><label class="setting-label">Мои шашки</label><div class="color-options"><label class="color-option"><input type="radio" name="playerColor" value="w" checked><span class="color-preview"><span class="light-piece"></span></span><span><strong>Белые</strong><br><small style="color:var(--muted)">Хожу первым</small></span></label><label class="color-option"><input type="radio" name="playerColor" value="b"><span class="color-preview"><span class="dark-piece"></span></span><span><strong>Чёрные</strong><br><small style="color:var(--muted)">Компьютер начинает</small></span></label></div><div class="setting-note">Цвет применяется к новой партии. При выборе чёрных доска автоматически разворачивается, чтобы ваши шашки были внизу.</div><button type="button" class="primary" id="applySettings" style="width:100%;margin-top:16px">Сохранить и начать игру</button></section>
+<section class="card game-status game-only"><div class="status" id="status">Ход белых</div><div class="hint" id="hint">Выберите шашку, затем клетку для хода.</div></section>
+<section class="players-strip game-only" aria-label="Участники партии"><div class="player-chip" id="playerWhite"><span class="player-disc white-disc" aria-hidden="true"></span><span class="player-copy"><strong>Белые</strong><small id="labelWhite">Вы</small></span><span class="turn-tag">ХОД</span></div><div class="player-chip" id="playerBlack"><span class="player-disc black-disc" aria-hidden="true"></span><span class="player-copy"><strong>Чёрные</strong><small id="labelBlack">Компьютер</small></span><span class="turn-tag">ХОД</span></div></section>
+<section class="board-shell game-only"><div class="board" id="board" aria-label="Игровая доска"></div></section>
+<section class="card controls game-only"><button class="primary" id="new"><span class="btn-icon">↻</span>Новая игра</button><button id="mode"><span class="btn-icon">♟</span>Режим: против компьютера</button><button id="online"><span class="btn-icon">↗</span>Играть с другом онлайн</button><button id="undo"><span class="btn-icon">↶</span>Отменить ход</button><button id="flip"><span class="btn-icon">⇄</span>Перевернуть доску</button></section>
+<section class="card game-only" id="onlinePanel" hidden><div class="status">Игра с другом онлайн</div><div class="hint" id="onlineInfo">Создайте комнату или подключитесь по коду/ссылке.</div><input id="roomCode" placeholder="Код комнаты или ID друга" style="width:100%;margin:10px 0;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><input id="inviteLink" readonly placeholder="Ссылка появится после создания комнаты" style="width:100%;margin:0 0 10px;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><div class="controls"><button class="primary" id="createRoom">Создать комнату</button><button id="joinRoom">Подключиться</button><button id="copyInvite">Копировать ссылку</button><button id="shareInvite">Пригласить друга</button><button id="closeOnline">Выйти из онлайн-игры</button></div></section>
 <div class="footer">Русские шашки · обязательное взятие · дамки</div>
 <div class="result-overlay" id="resultModal" hidden role="dialog" aria-modal="true" aria-labelledby="resultTitle">
   <div class="result-dialog" id="resultDialog">
@@ -115,16 +135,18 @@ button .btn-icon{display:inline-block;margin-right:6px;font-size:15px;line-heigh
 (function(){
 const boardEl=document.getElementById('board'),statusEl=document.getElementById('status'),hintEl=document.getElementById('hint');
 let b,turn,selected=null,legal=[],history=[],mode='cpu',flipped=false,gameOver=false;
-let online=false,onlinePeer=null,onlineConn=null,mySide='w',lastAnimatedFrom=null,lastAnimatedTo=null,lastCaptured=null,lastCapturedSide=null,pendingMoveOrigin=null;
+let preferredSide='w';try{preferredSide=localStorage.getItem('shashki-player-color')==='b'?'b':'w'}catch(e){}
+let online=false,onlinePeer=null,onlineConn=null,mySide=preferredSide,lastAnimatedFrom=null,lastAnimatedTo=null,lastCaptured=null,lastCapturedSide=null,pendingMoveOrigin=null;
 const onlinePanel=document.getElementById('onlinePanel'),onlineInfo=document.getElementById('onlineInfo'),roomCode=document.getElementById('roomCode'),inviteLink=document.getElementById('inviteLink');
 const resultModal=document.getElementById('resultModal'),resultDialog=document.getElementById('resultDialog'),resultTitle=document.getElementById('resultTitle'),resultMessage=document.getElementById('resultMessage'),resultIcon=document.getElementById('resultIcon');
 const dirs=[[-1,-1],[-1,1],[1,-1],[1,1]];
-function initial(){hideResult();lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;lastCapturedSide=null;pendingMoveOrigin=null;b=Array.from({length:8},()=>Array(8).fill(null));for(let r=0;r<3;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'b',king:false};for(let r=5;r<8;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'w',king:false};turn='w';selected=null;legal=[];history=[];gameOver=false;render();if(mode==='cpu'&&turn==='b')setTimeout(cpuMove,350)}
+function cpuSide(){return mySide==='w'?'b':'w'}
+function initial(){hideResult();flipped=mode==='cpu'&&mySide==='b';lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;lastCapturedSide=null;pendingMoveOrigin=null;b=Array.from({length:8},()=>Array(8).fill(null));for(let r=0;r<3;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'b',king:false};for(let r=5;r<8;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'w',king:false};turn='w';selected=null;legal=[];history=[];gameOver=false;render();if(mode==='cpu'&&turn===cpuSide())setTimeout(cpuMove,350)}
 function hideResult(){if(!resultModal)return;resultModal.classList.remove('show');resultModal.hidden=true}
 function showResult(winnerSide){
  if(!resultModal)return;
  const localTwoPlayers=mode==='local'&&!online;
- const isWin=online||mode==='cpu' ? winnerSide===mySide||(!online&&mode==='cpu'&&winnerSide==='w') : true;
+ const isWin=online||mode==='cpu' ? winnerSide===mySide : true;
  const isLoss=!localTwoPlayers&&!isWin;
  if(localTwoPlayers){
   resultTitle.textContent='Победа '+(winnerSide==='w'?'белых':'чёрных')+'!';
@@ -187,14 +209,14 @@ function animateRenderedMove(originRect,to,captured,capturedSide){
 }
 function perform(m){save();const [r,c]=m.from,[rr,cc]=m.to,p=b[r][c];const sourceCell=cellAt(r,c);pendingMoveOrigin=sourceCell?sourceCell.getBoundingClientRect():null;lastAnimatedFrom=[r,c];lastAnimatedTo=[rr,cc];lastCaptured=m.cap?m.cap.slice():null;lastCapturedSide=m.cap&&b[m.cap[0]][m.cap[1]]?b[m.cap[0]][m.cap[1]].side:null;b[rr][cc]=p;b[r][c]=null;if(m.cap){const [cr,ccap]=m.cap;b[cr][ccap]=null}
  if((p.side==='w'&&rr===0)||(p.side==='b'&&rr===7))p.king=true;
- if(m.cap){const more=movesFor(rr,cc,true);if(more.length){selected=[rr,cc];legal=more;broadcastState();render();hintEl.textContent='Продолжайте взятие этой шашкой.';if(mode==='cpu'&&turn==='b'&&!online)setTimeout(cpuMove,350);return}}
+ if(m.cap){const more=movesFor(rr,cc,true);if(more.length){selected=[rr,cc];legal=more;broadcastState();render();hintEl.textContent='Продолжайте взятие этой шашкой.';if(mode==='cpu'&&turn===cpuSide()&&!online)setTimeout(cpuMove,350);return}}
  selected=null;legal=[];turn=turn==='w'?'b':'w';const next=allMoves(turn);if(!next.length){gameOver=true;const winner=turn==='w'?'b':'w';statusEl.textContent='Победа '+(winner==='w'?'белых':'чёрных')+'!';hintEl.textContent='У соперника не осталось ходов.';broadcastState();render();showResult(winner);return}
  broadcastState();render();if(mode==='cpu'&&turn==='b'&&!gameOver)setTimeout(cpuMove,350)}
-function choose(r,c){if(gameOver||mode==='cpu'&&turn==='b'||online&&turn!==mySide)return;
+function choose(r,c){if(gameOver||mode==='cpu'&&turn===cpuSide()||online&&turn!==mySide)return;
  if(selected&&legal.some(m=>m.to[0]===r&&m.to[1]===c)){perform(legal.find(m=>m.to[0]===r&&m.to[1]===c));return}
  if(b[r][c]?.side===turn){const all=allMoves(turn);selected=[r,c];legal=all.filter(m=>m.from[0]===r&&m.from[1]===c);if(!legal.length){selected=null;legal=[]}render();return}
  selected=null;legal=[];render()}
-function cpuMove(){if(gameOver||turn!=='b'||mode!=='cpu')return;const continuing=selected&&legal.length&&legal.every(m=>m.from[0]===selected[0]&&m.from[1]===selected[1]);const ms=continuing?legal.slice():allMoves('b');if(!ms.length)return;ms.sort((a,z)=>(z.cap?10:0)+(b[z.to[0]][z.to[1]]?.king?1:0)-((a.cap?10:0)+(b[a.to[0]][a.to[1]]?.king?1:0)));perform(ms[0])}
+function cpuMove(){const side=cpuSide();if(gameOver||turn!==side||mode!=='cpu')return;const continuing=selected&&legal.length&&legal.every(m=>m.from[0]===selected[0]&&m.from[1]===selected[1]);const ms=continuing?legal.slice():allMoves(side);if(!ms.length)return;ms.sort((a,z)=>(z.cap?10:0)+(b[z.to[0]][z.to[1]]?.king?1:0)-((a.cap?10:0)+(b[a.to[0]][a.to[1]]?.king?1:0)));perform(ms[0])}
 function updatePlayerStrip(){
  const white=document.getElementById('playerWhite'),black=document.getElementById('playerBlack');
  if(!white||!black)return;
@@ -208,7 +230,7 @@ function updatePlayerStrip(){
 function render(){const animationOrigin=pendingMoveOrigin,animationTarget=lastAnimatedTo?lastAnimatedTo.slice():null,captureForRender=lastCaptured?lastCaptured.slice():null,capturedSideForRender=lastCapturedSide;boardEl.querySelectorAll('.cell').forEach(cell=>cell.remove());for(let vr=0;vr<8;vr++)for(let vc=0;vc<8;vc++){const r=flipped?7-vr:vr,c=flipped?7-vc:vc,cell=document.createElement('button');cell.className='cell '+((r+c)%2?'dark':'light');cell.dataset.row=r;cell.dataset.col=c;cell.setAttribute('aria-label',String.fromCharCode(65+c)+(8-r));cell.style.padding='0';cell.onclick=()=>choose(r,c);if(selected&&selected[0]===r&&selected[1]===c)cell.classList.add('selected');if(legal.some(m=>m.to[0]===r&&m.to[1]===c))cell.classList.add('move');if(captureForRender&&captureForRender[0]===r&&captureForRender[1]===c)cell.classList.add('captured');const p=b[r][c];if(p){const piece=document.createElement('div');piece.className='piece '+(p.side==='w'?'white':'black')+(p.king?' king':'');cell.appendChild(piece)}boardEl.appendChild(cell)}
  pendingMoveOrigin=null;lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;lastCapturedSide=null;
  if(animationOrigin&&animationTarget)animateRenderedMove(animationOrigin,animationTarget,captureForRender,capturedSideForRender);
- if(!gameOver){statusEl.textContent='Ход '+(turn==='w'?'белых':'чёрных');hintEl.textContent=(mode==='cpu'&&turn==='b')?'Компьютер выбирает ход…':'Выберите шашку, затем клетку для хода.'}updatePlayerStrip()}
+ if(!gameOver){statusEl.textContent='Ход '+(turn==='w'?'белых':'чёрных');hintEl.textContent=(mode==='cpu'&&turn===cpuSide())?'Компьютер выбирает ход…':'Выберите шашку, затем клетку для хода.'}updatePlayerStrip()}
 function statePacket(){return {type:'state',b,turn,gameOver,lastMove:lastAnimatedFrom&&lastAnimatedTo?{from:lastAnimatedFrom,to:lastAnimatedTo,cap:lastCaptured,capSide:lastCapturedSide}:null};}
 function broadcastState(){if(onlineConn&&onlineConn.open)onlineConn.send(statePacket())}
 function applyPacket(data){if(!data||data.type!=='state'||!Array.isArray(data.b))return;pendingMoveOrigin=null;const move=data.lastMove;if(move&&Array.isArray(move.from)&&Array.isArray(move.to)){const sourceCell=cellAt(move.from[0],move.from[1]);pendingMoveOrigin=sourceCell?sourceCell.getBoundingClientRect():null;lastAnimatedFrom=move.from.slice();lastAnimatedTo=move.to.slice();lastCaptured=Array.isArray(move.cap)?move.cap.slice():null;lastCapturedSide=move.capSide||null;}else{lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;lastCapturedSide=null;}b=data.b;turn=data.turn;gameOver=!!data.gameOver;selected=null;legal=[];history=[];render();if(gameOver){hintEl.textContent='Партия завершена.';showResult(turn==='w'?'b':'w')}else hideResult()}
@@ -226,6 +248,11 @@ document.getElementById('resultClose').onclick=hideResult;
 document.getElementById('mode').onclick=()=>{if(online){onlineInfo.textContent='Для выхода нажмите «Выйти из онлайн-игры».';return}mode=mode==='cpu'?'local':'cpu';document.getElementById('mode').textContent='Режим: '+(mode==='cpu'?'против компьютера':'2 игрока');initial()};
 document.getElementById('undo').onclick=()=>{if(online){onlineInfo.textContent='Отмена хода в онлайн-партии отключена, чтобы не рассинхронизировать игроков.';return}if(!history.length)return;const s=history.pop();b=s.b;turn=s.turn;gameOver=s.gameOver;selected=null;legal=[];render()};
 document.getElementById('flip').onclick=()=>{flipped=!flipped;render()};
+const mainEl=document.querySelector('main'),gameTab=document.getElementById('gameTab'),settingsTab=document.getElementById('settingsTab');
+function switchTab(tab){mainEl.dataset.tab=tab;const isGame=tab==='game';gameTab.classList.toggle('active',isGame);settingsTab.classList.toggle('active',!isGame);gameTab.setAttribute('aria-selected',String(isGame));settingsTab.setAttribute('aria-selected',String(!isGame))}
+gameTab.onclick=()=>switchTab('game');settingsTab.onclick=()=>switchTab('settings');
+document.querySelectorAll('input[name="playerColor"]').forEach(input=>input.checked=input.value===preferredSide);
+document.getElementById('applySettings').onclick=()=>{const chosen=document.querySelector('input[name="playerColor"]:checked');preferredSide=chosen?chosen.value:'w';mySide=preferredSide;try{localStorage.setItem('shashki-player-color',preferredSide)}catch(e){}if(!online&&mode==='cpu'){initial()}else{flipped=preferredSide==='b';render()}switchTab('game')};
 
 if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.ready();window.Telegram.WebApp.expand()}
 initial();
