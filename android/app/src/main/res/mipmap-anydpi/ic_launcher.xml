@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#111722" android:pathData="M0,0 H108 V108 H0 Z"/>
+
+    <path android:fillColor="#4A2D1B" android:strokeColor="#E4B552" android:strokeWidth="2.8"
+        android:pathData="M20,14 H88 C92.4,14 96,17.6 96,22 V86 C96,90.4 92.4,94 88,94 H20 C15.6,94 12,90.4 12,86 V22 C12,17.6 15.6,14 20,14 Z"/>
+    <path android:fillColor="#E7B66E" android:pathData="M22,22 H86 V86 H22 Z"/>
+    <path android:fillColor="#3A2418" android:pathData="
+        M30,22 H38 V30 H30 Z M46,22 H54 V30 H46 Z M62,22 H70 V30 H62 Z M78,22 H86 V30 H78 Z
+        M22,30 H30 V38 H22 Z M38,30 H46 V38 H38 Z M54,30 H62 V38 H54 Z M70,30 H78 V38 H70 Z
+        M30,38 H38 V46 H30 Z M46,38 H54 V46 H46 Z M62,38 H70 V46 H62 Z M78,38 H86 V46 H78 Z
+        M22,46 H30 V54 H22 Z M38,46 H46 V54 H38 Z M54,46 H62 V54 H54 Z M70,46 H78 V54 H70 Z
+        M30,54 H38 V62 H30 Z M46,54 H54 V62 H46 Z M62,54 H70 V62 H62 Z M78,54 H86 V62 H78 Z
+        M22,62 H30 V70 H22 Z M38,62 H46 V70 H38 Z M54,62 H62 V70 H54 Z M70,62 H78 V70 H70 Z
+        M30,70 H38 V78 H30 Z M46,70 H54 V78 H46 Z M62,70 H70 V78 H62 Z M78,70 H86 V78 H78 Z
+        M22,78 H30 V86 H22 Z M38,78 H46 V86 H38 Z M54,78 H62 V86 H54 Z M70,78 H78 V86 H70 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#9C642D" android:strokeWidth="1"
+        android:pathData="M22,22 H86 V86 H22 Z"/>
+    <circle android:fillColor="#7D5129" android:cx="42" android:cy="51" android:radius="7.7"/>
+    <circle android:fillColor="#F9EBD0" android:strokeColor="#B57D3A" android:strokeWidth="1.6" android:cx="42" android:cy="49" android:radius="7.7"/>
+    <circle android:fillColor="#00000000" android:strokeColor="#D7B47E" android:strokeWidth="1.5" android:cx="42" android:cy="49" android:radius="4.8"/>
+    <circle android:fillColor="#090D14" android:cx="66" android:cy="67" android:radius="8.1"/>
+    <circle android:fillColor="#141923" android:strokeColor="#6A7480" android:strokeWidth="1.5" android:cx="66" android:cy="65" android:radius="8.1"/>
+    <circle android:fillColor="#00000000" android:strokeColor="#56606E" android:strokeWidth="1.5" android:cx="66" android:cy="65" android:radius="5"/>
+    <circle android:fillColor="#D8DEE8" android:cx="63.5" android:cy="62.5" android:radius="1.2"/>
+
+</vector>
