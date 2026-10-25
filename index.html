@@ -13,10 +13,9 @@ main{width:min(100%,520px);padding:16px;display:flex;flex-direction:column;gap:1
 .board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border:5px solid #583a2a;border-radius:9px;overflow:hidden;touch-action:manipulation}
 .cell{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;aspect-ratio:1}.light{background:var(--light)}.dark{background:var(--dark)}.cell.selected{box-shadow:inset 0 0 0 4px #58d6a5}.cell.move:after{content:"";width:30%;height:30%;border-radius:50%;background:#58d6a5;opacity:.9;position:absolute}
 .piece{width:78%;height:78%;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -4px 0 #0004,0 2px 4px #0005;border:3px solid #ffffff4d;z-index:1;will-change:transform}
-.piece.moving{animation:pieceStep .22s cubic-bezier(.2,.75,.25,1) both}
-.cell.captured{animation:cellCapture .24s ease-out both}
-@keyframes pieceStep{0%{transform:scale(.82) translateY(7%);filter:brightness(1.25)}65%{transform:scale(1.08) translateY(-5%)}100%{transform:scale(1) translateY(0);filter:brightness(1)}}
-@keyframes cellCapture{0%{background:#f5d36c;filter:brightness(1.7)}100%{filter:brightness(1)}}
+.piece.moving{will-change:transform}
+.cell.captured{animation:cellCapture .34s ease-out both}
+@keyframes cellCapture{0%{background:#f5d36c;filter:brightness(1.55)}70%{background:#f0d9b5;filter:brightness(1.12)}100%{filter:brightness(1)}}
 @media(prefers-reduced-motion:reduce){.piece.moving,.cell.captured{animation:none}}
 .white{background:linear-gradient(#fff,#d9e0eb);border-color:#b7c2d2}.black{background:linear-gradient(#333b4b,#10151f);border-color:#596273}.king:after{content:"♛";font-size:clamp(17px,5vw,25px);color:#e8c66d;text-shadow:0 1px 2px #000}
 .controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}button{border:0;border-radius:12px;padding:12px 10px;font:700 14px system-ui;cursor:pointer;background:#2a3952;color:#fff}button.primary{background:var(--accent);color:#10251d}button:active{transform:scale(.98)}
@@ -35,10 +34,10 @@ main{width:min(100%,520px);padding:16px;display:flex;flex-direction:column;gap:1
 (function(){
 const boardEl=document.getElementById('board'),statusEl=document.getElementById('status'),hintEl=document.getElementById('hint');
 let b,turn,selected=null,legal=[],history=[],mode='cpu',flipped=false,gameOver=false;
-let online=false,onlinePeer=null,onlineConn=null,mySide='w',lastAnimatedTo=null,lastCaptured=null,animTimer=null;
+let online=false,onlinePeer=null,onlineConn=null,mySide='w',lastAnimatedFrom=null,lastAnimatedTo=null,lastCaptured=null,pendingMoveOrigin=null;
 const onlinePanel=document.getElementById('onlinePanel'),onlineInfo=document.getElementById('onlineInfo'),roomCode=document.getElementById('roomCode'),inviteLink=document.getElementById('inviteLink');
 const dirs=[[-1,-1],[-1,1],[1,-1],[1,1]];
-function initial(){b=Array.from({length:8},()=>Array(8).fill(null));for(let r=0;r<3;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'b',king:false};for(let r=5;r<8;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'w',king:false};turn='w';selected=null;legal=[];history=[];gameOver=false;render();if(mode==='cpu'&&turn==='b')setTimeout(cpuMove,350)}
+function initial(){lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;pendingMoveOrigin=null;b=Array.from({length:8},()=>Array(8).fill(null));for(let r=0;r<3;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'b',king:false};for(let r=5;r<8;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'w',king:false};turn='w';selected=null;legal=[];history=[];gameOver=false;render();if(mode==='cpu'&&turn==='b')setTimeout(cpuMove,350)}
 function inside(r,c){return r>=0&&r<8&&c>=0&&c<8}
 function movesFor(r,c,capturesOnly=false){const p=b[r][c];if(!p)return[];let out=[];
  if(p.king){for(const [dr,dc] of dirs){let rr=r+dr,cc=c+dc,enemy=null;while(inside(rr,cc)){const q=b[rr][cc];if(!q){if(!capturesOnly){if(!enemy)out.push({from:[r,c],to:[rr,cc],cap:null});else out.push({from:[r,c],to:[rr,cc],cap:enemy})}}else if(q.side===p.side||enemy)break;else enemy=[rr,cc];rr+=dr;cc+=dc}}}
@@ -47,7 +46,26 @@ function movesFor(r,c,capturesOnly=false){const p=b[r][c];if(!p)return[];let out
  return out}
 function allMoves(side){let all=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[r][c]?.side===side)all.push(...movesFor(r,c));const caps=all.filter(m=>m.cap);return caps.length?caps:all}
 function save(){history.push({b:b.map(row=>row.map(p=>p?{...p}:null)),turn,gameOver});if(history.length>80)history.shift()}
-function perform(m){save();const [r,c]=m.from,[rr,cc]=m.to,p=b[r][c];lastAnimatedTo=[rr,cc];lastCaptured=m.cap?m.cap.slice():null;b[rr][cc]=p;b[r][c]=null;if(m.cap){const [cr,ccap]=m.cap;b[cr][ccap]=null}
+function cellAt(r,c){return boardEl.querySelector('.cell[data-row="'+r+'"][data-col="'+c+'"]')}
+function animateRenderedMove(originRect,to,captured){
+ requestAnimationFrame(()=>{
+  const targetCell=cellAt(to[0],to[1]),piece=targetCell&&targetCell.querySelector('.piece');
+  if(piece&&piece.animate&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
+   const rect=targetCell.getBoundingClientRect(),dx=originRect.left-rect.left,dy=originRect.top-rect.top;
+   piece.classList.add('moving');
+   const animation=piece.animate([
+    {transform:'translate('+dx+'px,'+dy+'px) scale(.94)',filter:'brightness(1.08)',offset:0},
+    {transform:'translate('+(dx*.12)+'px,'+(dy*.12)+'px) scale(1.035)',filter:'brightness(1.04)',offset:.78},
+    {transform:'translate(0,0) scale(1)',filter:'brightness(1)',offset:1}
+   ],{duration:340,easing:'cubic-bezier(.2,.8,.2,1)'});
+   animation.onfinish=()=>piece.classList.remove('moving');
+  }
+  if(captured){
+   setTimeout(()=>{const cell=cellAt(captured[0],captured[1]);if(cell)cell.classList.remove('captured')},360);
+  }
+ });
+}
+function perform(m){save();const [r,c]=m.from,[rr,cc]=m.to,p=b[r][c];const sourceCell=cellAt(r,c);pendingMoveOrigin=sourceCell?sourceCell.getBoundingClientRect():null;lastAnimatedFrom=[r,c];lastAnimatedTo=[rr,cc];lastCaptured=m.cap?m.cap.slice():null;b[rr][cc]=p;b[r][c]=null;if(m.cap){const [cr,ccap]=m.cap;b[cr][ccap]=null}
  if((p.side==='w'&&rr===0)||(p.side==='b'&&rr===7))p.king=true;
  if(m.cap){const more=movesFor(rr,cc,true);if(more.length){selected=[rr,cc];legal=more;broadcastState();render();hintEl.textContent='Продолжайте взятие этой шашкой.';return}}
  selected=null;legal=[];turn=turn==='w'?'b':'w';const next=allMoves(turn);if(!next.length){gameOver=true;statusEl.textContent='Победа '+(turn==='w'?'чёрных':'белых')+'!';hintEl.textContent='У соперника не осталось ходов.';broadcastState();render();return}
@@ -57,11 +75,13 @@ function choose(r,c){if(gameOver||mode==='cpu'&&turn==='b'||online&&turn!==mySid
  if(b[r][c]?.side===turn){const all=allMoves(turn);selected=[r,c];legal=all.filter(m=>m.from[0]===r&&m.from[1]===c);if(!legal.length){selected=null;legal=[]}render();return}
  selected=null;legal=[];render()}
 function cpuMove(){if(gameOver||turn!=='b'||mode!=='cpu')return;const ms=allMoves('b');if(!ms.length)return;ms.sort((a,z)=>(z.cap?10:0)+(b[z.to[0]][z.to[1]]?.king?1:0)-((a.cap?10:0)+(b[a.to[0]][a.to[1]]?.king?1:0)));perform(ms[0])}
-function render(){boardEl.innerHTML='';for(let vr=0;vr<8;vr++)for(let vc=0;vc<8;vc++){const r=flipped?7-vr:vr,c=flipped?7-vc:vc,cell=document.createElement('button');cell.className='cell '+((r+c)%2?'dark':'light');cell.setAttribute('aria-label',String.fromCharCode(65+c)+(8-r));cell.style.padding='0';cell.onclick=()=>choose(r,c);if(selected&&selected[0]===r&&selected[1]===c)cell.classList.add('selected');if(legal.some(m=>m.to[0]===r&&m.to[1]===c))cell.classList.add('move');const p=b[r][c];if(p){const piece=document.createElement('div');piece.className='piece '+(p.side==='w'?'white':'black')+(p.king?' king':'')+(lastAnimatedTo&&lastAnimatedTo[0]===r&&lastAnimatedTo[1]===c?' moving':'');cell.appendChild(piece)}boardEl.appendChild(cell)}
+function render(){const animationOrigin=pendingMoveOrigin,animationTarget=lastAnimatedTo?lastAnimatedTo.slice():null,captureForRender=lastCaptured?lastCaptured.slice():null;boardEl.innerHTML='';for(let vr=0;vr<8;vr++)for(let vc=0;vc<8;vc++){const r=flipped?7-vr:vr,c=flipped?7-vc:vc,cell=document.createElement('button');cell.className='cell '+((r+c)%2?'dark':'light');cell.dataset.row=r;cell.dataset.col=c;cell.setAttribute('aria-label',String.fromCharCode(65+c)+(8-r));cell.style.padding='0';cell.onclick=()=>choose(r,c);if(selected&&selected[0]===r&&selected[1]===c)cell.classList.add('selected');if(legal.some(m=>m.to[0]===r&&m.to[1]===c))cell.classList.add('move');if(captureForRender&&captureForRender[0]===r&&captureForRender[1]===c)cell.classList.add('captured');const p=b[r][c];if(p){const piece=document.createElement('div');piece.className='piece '+(p.side==='w'?'white':'black')+(p.king?' king':'');cell.appendChild(piece)}boardEl.appendChild(cell)}
+ pendingMoveOrigin=null;lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;
+ if(animationOrigin&&animationTarget)animateRenderedMove(animationOrigin,animationTarget,captureForRender);
  if(!gameOver){statusEl.textContent='Ход '+(turn==='w'?'белых':'чёрных');hintEl.textContent=(mode==='cpu'&&turn==='b')?'Компьютер выбирает ход…':'Выберите шашку, затем клетку для хода.'}}
-function statePacket(){return {type:'state',b,turn,gameOver};}
+function statePacket(){return {type:'state',b,turn,gameOver,lastMove:lastAnimatedFrom&&lastAnimatedTo?{from:lastAnimatedFrom,to:lastAnimatedTo,cap:lastCaptured}:null};}
 function broadcastState(){if(onlineConn&&onlineConn.open)onlineConn.send(statePacket())}
-function applyPacket(data){if(!data||data.type!=='state'||!Array.isArray(data.b))return;b=data.b;turn=data.turn;gameOver=!!data.gameOver;selected=null;legal=[];history=[];render();if(gameOver)hintEl.textContent='Партия завершена.'}
+function applyPacket(data){if(!data||data.type!=='state'||!Array.isArray(data.b))return;pendingMoveOrigin=null;const move=data.lastMove;if(move&&Array.isArray(move.from)&&Array.isArray(move.to)){const sourceCell=cellAt(move.from[0],move.from[1]);pendingMoveOrigin=sourceCell?sourceCell.getBoundingClientRect():null;lastAnimatedFrom=move.from.slice();lastAnimatedTo=move.to.slice();lastCaptured=Array.isArray(move.cap)?move.cap.slice():null;}else{lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;}b=data.b;turn=data.turn;gameOver=!!data.gameOver;selected=null;legal=[];history=[];render();if(gameOver)hintEl.textContent='Партия завершена.'}
 function setOnlineConnection(conn,role){onlineConn=conn;online=true;mode='online';mySide=role;conn.on('open',()=>{onlineInfo.textContent=role==='w'?'Друг подключился! Вы играете белыми.':'Подключено! Вы играете чёрными.';if(role==='w')conn.send(statePacket());else conn.send({type:'request-state'});render()});conn.on('data',data=>{if(data?.type==='state')applyPacket(data);else if(data?.type==='request-state'&&role==='w')conn.send(statePacket())});conn.on('close',()=>{onlineInfo.textContent='Связь с другом прервана.';onlineConn=null});conn.on('error',()=>{onlineInfo.textContent='Ошибка соединения. Попробуйте подключиться снова.'})}
 function destroyOnline(){online=false;onlineConn=null;if(onlinePeer){onlinePeer.destroy();onlinePeer=null}mySide='w';onlinePanel.hidden=true;document.getElementById('mode').textContent='Режим: '+(mode==='cpu'?'против компьютера':'2 игрока');}
 document.getElementById('online').onclick=()=>{onlinePanel.hidden=!onlinePanel.hidden;if(!onlinePanel.hidden)onlineInfo.textContent='Создайте комнату и отправьте другу ссылку или введите код друга.'};
@@ -74,7 +94,7 @@ document.getElementById('new').onclick=()=>{initial();if(online)broadcastState()
 document.getElementById('mode').onclick=()=>{if(online){onlineInfo.textContent='Для выхода нажмите «Выйти из онлайн-игры».';return}mode=mode==='cpu'?'local':'cpu';document.getElementById('mode').textContent='Режим: '+(mode==='cpu'?'против компьютера':'2 игрока');initial()};
 document.getElementById('undo').onclick=()=>{if(online){onlineInfo.textContent='Отмена хода в онлайн-партии отключена, чтобы не рассинхронизировать игроков.';return}if(!history.length)return;const s=history.pop();b=s.b;turn=s.turn;gameOver=s.gameOver;selected=null;legal=[];render()};
 document.getElementById('flip').onclick=()=>{flipped=!flipped;render()};
-boardEl.addEventListener('animationend',e=>{if(e.target.classList.contains('piece')&&e.target.classList.contains('moving')){lastAnimatedTo=null;lastCaptured=null;}});
+
 if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.ready();window.Telegram.WebApp.expand()}
 initial();
 const incomingPeer=new URL(window.location.href).searchParams.get('peer');if(incomingPeer){onlinePanel.hidden=false;roomCode.value=incomingPeer;onlineInfo.textContent='Открыта ссылка-приглашение. Нажмите «Подключиться».'}
