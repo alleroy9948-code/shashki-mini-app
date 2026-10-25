@@ -6,21 +6,57 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
-:root{--bg:#101827;--panel:#1b263b;--light:#f0d9b5;--dark:#8a5a3b;--accent:#58d6a5}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f7f8fb;font:16px system-ui,Arial,sans-serif;min-height:100vh;display:flex;justify-content:center}
-main{width:min(100%,520px);padding:16px;display:flex;flex-direction:column;gap:14px}.top{display:flex;align-items:center;justify-content:space-between}.title{font-size:26px;font-weight:800}.badge{background:#26344d;padding:7px 11px;border-radius:20px;font-size:13px}
-.card{background:var(--panel);padding:14px;border-radius:18px;box-shadow:0 8px 28px #0002}.status{font-weight:700;font-size:17px}.hint{color:#b7c4d8;font-size:13px;margin-top:5px}
-.board{position:relative;display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border:5px solid #583a2a;border-radius:9px;overflow:hidden;touch-action:manipulation}
-.cell{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;aspect-ratio:1}.light{background:var(--light)}.dark{background:var(--dark)}.cell.selected{box-shadow:inset 0 0 0 4px #58d6a5}.cell.move:after{content:"";width:30%;height:30%;border-radius:50%;background:#58d6a5;opacity:.9;position:absolute}
-.piece{width:78%;height:78%;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -4px 0 #0004,0 2px 4px #0005;border:3px solid #ffffff4d;z-index:1;will-change:transform}
+:root{color-scheme:dark;--bg:#0b1020;--panel:#151f33;--panel2:#1c2a43;--light:#f1dfc4;--dark:#80543a;--accent:#59e0ae;--muted:#a9b8d0}
+*{box-sizing:border-box}
+html{min-height:100%;background:var(--bg)}
+body{margin:0;background:radial-gradient(ellipse at 50% -8%,#283c63 0,transparent 48%),radial-gradient(ellipse at 100% 42%,#192c3c 0,transparent 38%),var(--bg);color:#f7f8fb;font:16px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;min-height:100vh;display:flex;justify-content:center}
+main{position:relative;width:min(100%,560px);padding:20px 16px 28px;display:flex;flex-direction:column;gap:16px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 4px}
+.title{font-size:29px;font-weight:850;letter-spacing:-.045em;line-height:1;color:#fff;text-shadow:0 3px 22px #4e79c855}
+.badge{background:#ffffff0c;border:1px solid #ffffff18;color:#c4d2e8;padding:7px 12px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.card{background:linear-gradient(145deg,#1b2941f2,#131d30f5);border:1px solid #ffffff11;padding:16px;border-radius:20px;box-shadow:0 12px 32px #0002,inset 0 1px 0 #ffffff06}
+.status{font-weight:800;font-size:18px;letter-spacing:-.02em;display:flex;align-items:center;gap:9px}
+.status:before{content:"";width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px #59e0ae1c,0 0 14px #59e0ae55}
+.hint{color:var(--muted);font-size:13px;line-height:1.5;margin-top:5px}
+.board{position:relative;display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border:9px solid #3d2b22;border-radius:17px;overflow:hidden;touch-action:manipulation;background:#3d2b22;box-shadow:0 20px 44px #0006,0 0 0 1px #efc18c1c,inset 0 0 0 2px #f4d7b31c}
+.cell{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;aspect-ratio:1;border-radius:0!important;overflow:hidden}
+.light{background:linear-gradient(145deg,#f4e5cd,#e7cfac)}
+.dark{background:linear-gradient(145deg,#966846,#70462f)}
+.cell.selected{box-shadow:inset 0 0 0 4px #6ff0bd;z-index:2}
+.cell.move:after{content:"";width:29%;height:29%;border-radius:50%;background:#72f0bd;opacity:.94;position:absolute;box-shadow:0 0 0 5px #59e0ae35,0 0 15px #59e0ae85;animation:movePulse 1.25s ease-in-out infinite}
+@keyframes movePulse{0%,100%{transform:scale(.88);opacity:.76}50%{transform:scale(1.08);opacity:1}}
+.piece{position:relative;width:78%;height:78%;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -5px 0 #0004,0 5px 7px #0005;border:3px solid #ffffff60;z-index:1;will-change:transform}
+.piece:before{content:"";position:absolute;inset:8%;border-radius:50%;border:1px solid #ffffff4f;pointer-events:none}
 .piece.moving{will-change:transform}
 .cell.captured{animation:cellCapture .38s ease-out both}
 .shard{position:absolute;z-index:5;left:0;top:0;width:8%;height:8%;border-radius:25%;pointer-events:none;will-change:transform,opacity;box-shadow:inset 0 1px 2px #ffffff8c,0 1px 3px #0005}
 @keyframes cellCapture{0%{background:#f5d36c;filter:brightness(1.7)}65%{background:#f0d9b5;filter:brightness(1.15)}100%{filter:brightness(1)}}
-@media(prefers-reduced-motion:reduce){.piece.moving,.cell.captured{animation:none}}
-.white{background:linear-gradient(#fff,#d9e0eb);border-color:#b7c2d2}.black{background:linear-gradient(#333b4b,#10151f);border-color:#596273}.king:after{content:"♛";font-size:clamp(17px,5vw,25px);color:#e8c66d;text-shadow:0 1px 2px #000}
-.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}button{border:0;border-radius:12px;padding:12px 10px;font:700 14px system-ui;cursor:pointer;background:#2a3952;color:#fff}button.primary{background:var(--accent);color:#10251d}button:active{transform:scale(.98)}
-.footer{text-align:center;color:#7f91ad;font-size:12px}
+@media(prefers-reduced-motion:reduce){.piece.moving,.cell.captured,.cell.move:after{animation:none}}
+.white{background:radial-gradient(circle at 34% 25%,#fff 0,#f5f7fa 35%,#c9d3e2 100%);border-color:#b8c5d7}
+.black{background:radial-gradient(circle at 34% 25%,#606a7c 0,#323b4e 42%,#121722 100%);border-color:#67748a}
+.king:after{content:"♛";font-size:clamp(17px,5vw,25px);color:#f5d47d;text-shadow:0 2px 3px #000b,0 0 9px #ffd66c57}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{border:1px solid #ffffff12;border-radius:13px;padding:13px 10px;font:750 13px/1.25 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;cursor:pointer;background:linear-gradient(145deg,#2a3b59,#22314b);color:#f4f7ff;box-shadow:0 5px 12px #00000012;transition:transform .14s ease,border-color .14s ease,filter .14s ease}
+button:hover{filter:brightness(1.1);border-color:#ffffff2c}
+button:active{transform:scale(.975)}
+button:focus-visible,input:focus-visible{outline:3px solid #7ef3c4;outline-offset:2px}
+button.primary{background:linear-gradient(135deg,#7af0c1,#43d4a0);border-color:#a2ffdc;color:#09251c;box-shadow:0 7px 20px #47d5a02c}
+#online{background:linear-gradient(145deg,#3c426a,#2e3558)}
+#flip{background:linear-gradient(145deg,#38465d,#29364c)}
+.footer{text-align:center;color:#7486a5;font-size:11px;letter-spacing:.035em;padding:2px 0}
+input{font:inherit;outline:none}
+.result-overlay{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:22px;background:#050916c9;backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);opacity:0;transition:opacity .22s ease}
+.result-overlay[hidden]{display:none!important}
+.result-overlay.show{opacity:1}
+.result-dialog{width:min(100%,390px);padding:30px 24px 24px;border-radius:26px;text-align:center;background:linear-gradient(150deg,#202f4b,#121b2d);border:1px solid #ffffff20;box-shadow:0 28px 85px #0009;transform:translateY(12px) scale(.97);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+.result-overlay.show .result-dialog{transform:translateY(0) scale(1)}
+.result-icon{display:grid;place-items:center;width:76px;height:76px;margin:0 auto 16px;border-radius:24px;font-size:38px;background:linear-gradient(145deg,#9af5cf,#4bd9a6);box-shadow:0 10px 30px #4bd9a62e}
+.result-dialog.is-loss .result-icon{background:linear-gradient(145deg,#ffb5b5,#f06778);box-shadow:0 10px 30px #f0677833}
+.result-kicker{font-size:10px;font-weight:850;letter-spacing:.19em;color:#9aabc8;margin-bottom:9px}
+.result-dialog h2{margin:0;color:#fff;font-size:29px;letter-spacing:-.04em;font-weight:850}
+.result-dialog p{margin:10px 0 22px;color:#b7c5dc;font-size:14px;line-height:1.55}
+.result-actions{display:grid;grid-template-columns:1.2fr 1fr;gap:10px}
+@media(max-width:380px){main{padding:14px 11px 22px;gap:13px}.title{font-size:25px}.card{padding:13px;border-radius:17px}.board{border-width:7px}.controls{gap:8px}button{padding:12px 7px;font-size:12px}.result-dialog{padding:25px 18px 20px}}
 </style>
 </head>
 <body><main>
@@ -30,6 +66,18 @@ main{width:min(100%,520px);padding:16px;display:flex;flex-direction:column;gap:1
 <section class="card controls"><button class="primary" id="new">Новая игра</button><button id="mode">Режим: против компьютера</button><button id="online">Играть с другом онлайн</button><button id="undo">Отменить ход</button><button id="flip">Перевернуть доску</button></section>
 <section class="card" id="onlinePanel" hidden><div class="status">Игра с другом онлайн</div><div class="hint" id="onlineInfo">Создайте комнату или подключитесь по коду/ссылке.</div><input id="roomCode" placeholder="Код комнаты или ID друга" style="width:100%;margin:10px 0;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><input id="inviteLink" readonly placeholder="Ссылка появится после создания комнаты" style="width:100%;margin:0 0 10px;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><div class="controls"><button class="primary" id="createRoom">Создать комнату</button><button id="joinRoom">Подключиться</button><button id="copyInvite">Копировать ссылку</button><button id="shareInvite">Пригласить друга</button><button id="closeOnline">Выйти из онлайн-игры</button></div></section>
 <div class="footer">Русские шашки · обязательное взятие · дамки</div>
+<div class="result-overlay" id="resultModal" hidden role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+  <div class="result-dialog" id="resultDialog">
+    <div class="result-icon" id="resultIcon" aria-hidden="true">🏆</div>
+    <div class="result-kicker">ПАРТИЯ ЗАВЕРШЕНА</div>
+    <h2 id="resultTitle">Победа!</h2>
+    <p id="resultMessage">Партия завершена.</p>
+    <div class="result-actions">
+      <button class="primary" id="resultNew">Сыграть ещё</button>
+      <button id="resultClose">К доске</button>
+    </div>
+  </div>
+</div>
 </main>
 <script>
 (function(){
@@ -37,8 +85,34 @@ const boardEl=document.getElementById('board'),statusEl=document.getElementById(
 let b,turn,selected=null,legal=[],history=[],mode='cpu',flipped=false,gameOver=false;
 let online=false,onlinePeer=null,onlineConn=null,mySide='w',lastAnimatedFrom=null,lastAnimatedTo=null,lastCaptured=null,lastCapturedSide=null,pendingMoveOrigin=null;
 const onlinePanel=document.getElementById('onlinePanel'),onlineInfo=document.getElementById('onlineInfo'),roomCode=document.getElementById('roomCode'),inviteLink=document.getElementById('inviteLink');
+const resultModal=document.getElementById('resultModal'),resultDialog=document.getElementById('resultDialog'),resultTitle=document.getElementById('resultTitle'),resultMessage=document.getElementById('resultMessage'),resultIcon=document.getElementById('resultIcon');
 const dirs=[[-1,-1],[-1,1],[1,-1],[1,1]];
-function initial(){lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;lastCapturedSide=null;pendingMoveOrigin=null;b=Array.from({length:8},()=>Array(8).fill(null));for(let r=0;r<3;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'b',king:false};for(let r=5;r<8;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'w',king:false};turn='w';selected=null;legal=[];history=[];gameOver=false;render();if(mode==='cpu'&&turn==='b')setTimeout(cpuMove,350)}
+function initial(){hideResult();lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;lastCapturedSide=null;pendingMoveOrigin=null;b=Array.from({length:8},()=>Array(8).fill(null));for(let r=0;r<3;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'b',king:false};for(let r=5;r<8;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'w',king:false};turn='w';selected=null;legal=[];history=[];gameOver=false;render();if(mode==='cpu'&&turn==='b')setTimeout(cpuMove,350)}
+function hideResult(){if(!resultModal)return;resultModal.classList.remove('show');resultModal.hidden=true}
+function showResult(winnerSide){
+ if(!resultModal)return;
+ const localTwoPlayers=mode==='local'&&!online;
+ const isWin=online||mode==='cpu' ? winnerSide===mySide||(!online&&mode==='cpu'&&winnerSide==='w') : true;
+ const isLoss=!localTwoPlayers&&!isWin;
+ if(localTwoPlayers){
+  resultTitle.textContent='Победа '+(winnerSide==='w'?'белых':'чёрных')+'!';
+  resultMessage.textContent='У соперника не осталось допустимых ходов.';
+  resultIcon.textContent='🏆';
+ }else if(isLoss){
+  resultTitle.textContent='Поражение';
+  resultMessage.textContent='У вас больше нет допустимых ходов. Ничего страшного — сыграйте ещё раз и возьмите реванш!';
+  resultIcon.textContent='💔';
+ }else{
+  resultTitle.textContent='Победа!';
+  resultMessage.textContent='Отличная партия! У соперника не осталось допустимых ходов.';
+  resultIcon.textContent='🏆';
+ }
+ resultDialog.classList.toggle('is-loss',isLoss);
+ resultDialog.classList.toggle('is-win',!isLoss);
+ resultModal.hidden=false;
+ requestAnimationFrame(()=>resultModal.classList.add('show'));
+ if(isLoss&&navigator.vibrate){try{navigator.vibrate([120,55,160])}catch(e){}}
+}
 function inside(r,c){return r>=0&&r<8&&c>=0&&c<8}
 function movesFor(r,c,capturesOnly=false){const p=b[r][c];if(!p)return[];let out=[];
  if(p.king){for(const [dr,dc] of dirs){let rr=r+dr,cc=c+dc,enemy=null;while(inside(rr,cc)){const q=b[rr][cc];if(!q){if(!capturesOnly){if(!enemy)out.push({from:[r,c],to:[rr,cc],cap:null});else out.push({from:[r,c],to:[rr,cc],cap:enemy})}}else if(q.side===p.side||enemy)break;else enemy=[rr,cc];rr+=dr;cc+=dc}}}
@@ -82,7 +156,7 @@ function animateRenderedMove(originRect,to,captured,capturedSide){
 function perform(m){save();const [r,c]=m.from,[rr,cc]=m.to,p=b[r][c];const sourceCell=cellAt(r,c);pendingMoveOrigin=sourceCell?sourceCell.getBoundingClientRect():null;lastAnimatedFrom=[r,c];lastAnimatedTo=[rr,cc];lastCaptured=m.cap?m.cap.slice():null;lastCapturedSide=m.cap&&b[m.cap[0]][m.cap[1]]?b[m.cap[0]][m.cap[1]].side:null;b[rr][cc]=p;b[r][c]=null;if(m.cap){const [cr,ccap]=m.cap;b[cr][ccap]=null}
  if((p.side==='w'&&rr===0)||(p.side==='b'&&rr===7))p.king=true;
  if(m.cap){const more=movesFor(rr,cc,true);if(more.length){selected=[rr,cc];legal=more;broadcastState();render();hintEl.textContent='Продолжайте взятие этой шашкой.';if(mode==='cpu'&&turn==='b'&&!online)setTimeout(cpuMove,350);return}}
- selected=null;legal=[];turn=turn==='w'?'b':'w';const next=allMoves(turn);if(!next.length){gameOver=true;statusEl.textContent='Победа '+(turn==='w'?'чёрных':'белых')+'!';hintEl.textContent='У соперника не осталось ходов.';broadcastState();render();return}
+ selected=null;legal=[];turn=turn==='w'?'b':'w';const next=allMoves(turn);if(!next.length){gameOver=true;const winner=turn==='w'?'b':'w';statusEl.textContent='Победа '+(winner==='w'?'белых':'чёрных')+'!';hintEl.textContent='У соперника не осталось ходов.';broadcastState();render();showResult(winner);return}
  broadcastState();render();if(mode==='cpu'&&turn==='b'&&!gameOver)setTimeout(cpuMove,350)}
 function choose(r,c){if(gameOver||mode==='cpu'&&turn==='b'||online&&turn!==mySide)return;
  if(selected&&legal.some(m=>m.to[0]===r&&m.to[1]===c)){perform(legal.find(m=>m.to[0]===r&&m.to[1]===c));return}
@@ -95,7 +169,7 @@ function render(){const animationOrigin=pendingMoveOrigin,animationTarget=lastAn
  if(!gameOver){statusEl.textContent='Ход '+(turn==='w'?'белых':'чёрных');hintEl.textContent=(mode==='cpu'&&turn==='b')?'Компьютер выбирает ход…':'Выберите шашку, затем клетку для хода.'}}
 function statePacket(){return {type:'state',b,turn,gameOver,lastMove:lastAnimatedFrom&&lastAnimatedTo?{from:lastAnimatedFrom,to:lastAnimatedTo,cap:lastCaptured,capSide:lastCapturedSide}:null};}
 function broadcastState(){if(onlineConn&&onlineConn.open)onlineConn.send(statePacket())}
-function applyPacket(data){if(!data||data.type!=='state'||!Array.isArray(data.b))return;pendingMoveOrigin=null;const move=data.lastMove;if(move&&Array.isArray(move.from)&&Array.isArray(move.to)){const sourceCell=cellAt(move.from[0],move.from[1]);pendingMoveOrigin=sourceCell?sourceCell.getBoundingClientRect():null;lastAnimatedFrom=move.from.slice();lastAnimatedTo=move.to.slice();lastCaptured=Array.isArray(move.cap)?move.cap.slice():null;lastCapturedSide=move.capSide||null;}else{lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;lastCapturedSide=null;}b=data.b;turn=data.turn;gameOver=!!data.gameOver;selected=null;legal=[];history=[];render();if(gameOver)hintEl.textContent='Партия завершена.'}
+function applyPacket(data){if(!data||data.type!=='state'||!Array.isArray(data.b))return;pendingMoveOrigin=null;const move=data.lastMove;if(move&&Array.isArray(move.from)&&Array.isArray(move.to)){const sourceCell=cellAt(move.from[0],move.from[1]);pendingMoveOrigin=sourceCell?sourceCell.getBoundingClientRect():null;lastAnimatedFrom=move.from.slice();lastAnimatedTo=move.to.slice();lastCaptured=Array.isArray(move.cap)?move.cap.slice():null;lastCapturedSide=move.capSide||null;}else{lastAnimatedFrom=null;lastAnimatedTo=null;lastCaptured=null;lastCapturedSide=null;}b=data.b;turn=data.turn;gameOver=!!data.gameOver;selected=null;legal=[];history=[];render();if(gameOver){hintEl.textContent='Партия завершена.';showResult(turn==='w'?'b':'w')}else hideResult()}
 function setOnlineConnection(conn,role){onlineConn=conn;online=true;mode='online';mySide=role;conn.on('open',()=>{onlineInfo.textContent=role==='w'?'Друг подключился! Вы играете белыми.':'Подключено! Вы играете чёрными.';if(role==='w')conn.send(statePacket());else conn.send({type:'request-state'});render()});conn.on('data',data=>{if(data?.type==='state')applyPacket(data);else if(data?.type==='request-state'&&role==='w')conn.send(statePacket())});conn.on('close',()=>{onlineInfo.textContent='Связь с другом прервана.';onlineConn=null});conn.on('error',()=>{onlineInfo.textContent='Ошибка соединения. Попробуйте подключиться снова.'})}
 function destroyOnline(){online=false;onlineConn=null;if(onlinePeer){onlinePeer.destroy();onlinePeer=null}mySide='w';onlinePanel.hidden=true;document.getElementById('mode').textContent='Режим: '+(mode==='cpu'?'против компьютера':'2 игрока');}
 document.getElementById('online').onclick=()=>{onlinePanel.hidden=!onlinePanel.hidden;if(!onlinePanel.hidden)onlineInfo.textContent='Создайте комнату и отправьте другу ссылку или введите код друга.'};
@@ -105,6 +179,8 @@ document.getElementById('copyInvite').onclick=async()=>{const val=inviteLink.val
 document.getElementById('shareInvite').onclick=async()=>{const val=inviteLink.value;if(!val){onlineInfo.textContent='Сначала создайте комнату, чтобы получить ссылку-приглашение.';return}const text='Сыграем в шашки онлайн! Открой ссылку и нажми «Подключиться».';const tg=window.Telegram&&window.Telegram.WebApp;if(tg&&tg.openTelegramLink){tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(val)+'&text='+encodeURIComponent(text));return}if(navigator.share){try{await navigator.share({title:'Шашки онлайн',text,url:val});onlineInfo.textContent='Приглашение отправлено.';return}catch(e){if(e.name==='AbortError')return}}try{await navigator.clipboard.writeText(text+' '+val);onlineInfo.textContent='Текст и ссылка скопированы — отправьте их другу.'}catch(e){inviteLink.focus();inviteLink.select();onlineInfo.textContent='Скопируйте ссылку выше и отправьте другу.'}};
 document.getElementById('closeOnline').onclick=()=>{destroyOnline();mode='cpu';initial();onlineInfo.textContent='Онлайн-режим закрыт.'};
 document.getElementById('new').onclick=()=>{initial();if(online)broadcastState()};
+document.getElementById('resultNew').onclick=()=>document.getElementById('new').click();
+document.getElementById('resultClose').onclick=hideResult;
 document.getElementById('mode').onclick=()=>{if(online){onlineInfo.textContent='Для выхода нажмите «Выйти из онлайн-игры».';return}mode=mode==='cpu'?'local':'cpu';document.getElementById('mode').textContent='Режим: '+(mode==='cpu'?'против компьютера':'2 игрока');initial()};
 document.getElementById('undo').onclick=()=>{if(online){onlineInfo.textContent='Отмена хода в онлайн-партии отключена, чтобы не рассинхронизировать игроков.';return}if(!history.length)return;const s=history.pop();b=s.b;turn=s.turn;gameOver=s.gameOver;selected=null;legal=[];render()};
 document.getElementById('flip').onclick=()=>{flipped=!flipped;render()};
