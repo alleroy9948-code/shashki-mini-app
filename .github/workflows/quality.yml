@@ -1,0 +1,46 @@
+name: Validate checkers app
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Verify HTML, inline JavaScript, IDs, and Android mirror
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const web = fs.readFileSync('index.html', 'utf8');
+          const android = fs.readFileSync('android/app/src/main/assets/index.html', 'utf8');
+          if (web !== android) {
+            throw new Error('The web page and Android HTML asset must be identical.');
+          }
+          const ids = [...web.matchAll(/\\sid=["']([^"']+)["']/g)].map(match => match[1]);
+          const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+          if (duplicates.length) {
+            throw new Error('Duplicate HTML IDs: ' + duplicates.join(', '));
+          }
+          const scripts = [...web.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)]
+            .map(match => match[1])
+            .filter(source => source.includes('(function(){'));
+          if (scripts.length !== 1) {
+            throw new Error('Expected exactly one inline game script.');
+          }
+          new Function(scripts[0]);
+          for (const requiredId of ['board', 'menuToggle', 'new', 'undo', 'applySettings', 'status', 'hint']) {
+            if (!ids.includes(requiredId)) {
+              throw new Error('Missing required UI element: ' + requiredId);
+            }
+          }
+          console.log('Validation passed: mirrored files, unique IDs, required controls, and JavaScript syntax.');
+          NODE
