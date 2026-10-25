@@ -274,6 +274,6 @@ document.getElementById('applySettings').onclick=()=>{const chosen=document.quer
 
 if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.ready();window.Telegram.WebApp.expand()}
 initial();
-const incomingPeer=new URL(window.location.href).searchParams.get('peer');if(incomingPeer){onlinePanel.hidden=false;roomCode.value=incomingPeer;onlineInfo.textContent='Открыта ссылка-приглашение. Нажмите «Подключиться».'}
+const incomingPeer=new URL(window.location.href).searchParams.get('peer');if(incomingPeer){switchTab('interface');onlinePanel.hidden=false;roomCode.value=incomingPeer;onlineInfo.textContent='Открыта ссылка-приглашение. Нажмите «Подключиться».'}
 })();
 </script></body></html>
