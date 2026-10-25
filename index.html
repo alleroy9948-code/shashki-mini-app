@@ -14,13 +14,12 @@ body{margin:0;min-height:100vh;min-height:100svh;display:flex;justify-content:ce
 body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;background-image:linear-gradient(rgba(171,197,232,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(171,197,232,.055) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,#000,transparent 75%)}
 main{position:relative;z-index:1;width:min(100%,780px);padding:clamp(15px,4vw,24px);padding-bottom:26px;display:flex;flex-direction:column;gap:16px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:3px 2px 5px}
-.tabbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:5px;border:1px solid var(--line);border-radius:16px;background:rgba(13,22,38,.88)}
+.tabbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:5px;border:1px solid var(--line);border-radius:16px;background:rgba(13,22,38,.88)}
 .tab-button{min-height:44px;border:1px solid transparent;background:transparent;box-shadow:none;color:var(--muted);font-weight:850}
 .tab-button.active{color:#06271d;background:linear-gradient(135deg,#8af3c9,#53dca8);border-color:rgba(177,255,221,.75)}
 .pane{display:none;min-width:0}
 main[data-tab="board"] .board-pane{display:block}
-main[data-tab="interface"] .interface-pane{display:flex;flex-direction:column;gap:16px}
-main[data-tab="settings"] .settings-panel{display:block}
+main[data-tab="menu"] .menu-pane{display:flex;flex-direction:column;gap:16px}
 .board-shell{width:100%}
 .board-pane{width:100%}
 main[data-tab="board"]{width:min(100%,860px)}
@@ -116,21 +115,21 @@ button .btn-icon{display:inline-block;margin-right:6px;font-size:15px;line-heigh
 <body><main data-tab="board">
 <nav class="tabbar" role="tablist" aria-label="Разделы игры">
 <button type="button" class="tab-button active" id="boardTab" role="tab" aria-selected="true">♟ Доска</button>
-<button type="button" class="tab-button" id="interfaceTab" role="tab" aria-selected="false">☰ Интерфейс</button>
-<button type="button" class="tab-button" id="settingsTab" role="tab" aria-selected="false">⚙ Настройки</button>
+<button type="button" class="tab-button" id="menuTab" role="tab" aria-selected="false">☰ Меню</button>
 </nav>
 <div class="pane board-pane" id="boardPane" role="tabpanel" aria-label="Игровая доска">
 <section class="board-shell"><div class="board" id="board" aria-label="Игровая доска"></div></section>
 </div>
-<div class="pane interface-pane" id="interfacePane" role="tabpanel" aria-label="Управление игрой">
+<div class="pane menu-pane" id="menuPane" role="tabpanel" aria-label="Меню игры">
 <div class="top"><div class="brand"><div class="brand-mark" aria-hidden="true">♟</div><div class="brand-copy"><div class="title">Шашки</div><div class="subtitle">РУССКАЯ КЛАССИКА · 8×8</div></div></div><div class="badge"><span class="live-dot"></span> 1 на 1</div></div>
 <section class="card game-status"><div class="status" id="status">Ход белых</div><div class="hint" id="hint">Выберите шашку, затем клетку для хода.</div></section>
 <section class="players-strip" aria-label="Участники партии"><div class="player-chip" id="playerWhite"><span class="player-disc white-disc" aria-hidden="true"></span><span class="player-copy"><strong>Белые</strong><small id="labelWhite">Вы</small></span><span class="turn-tag">ХОД</span></div><div class="player-chip" id="playerBlack"><span class="player-disc black-disc" aria-hidden="true"></span><span class="player-copy"><strong>Чёрные</strong><small id="labelBlack">Компьютер</small></span><span class="turn-tag">ХОД</span></div></section>
 <section class="card controls"><button class="primary" id="new"><span class="btn-icon">↻</span>Новая игра</button><button id="mode"><span class="btn-icon">♟</span>Режим: против компьютера</button><button id="online"><span class="btn-icon">↗</span>Играть с другом онлайн</button><button id="undo"><span class="btn-icon">↶</span>Отменить ход</button><button id="flip"><span class="btn-icon">⇄</span>Перевернуть доску</button></section>
+<section class="card menu-settings" id="settingsPanel" aria-label="Цвет шашек"><div class="settings-title">Цвет шашек</div><div class="settings-copy">Выберите, за какую сторону играть против компьютера.</div><label class="setting-label">Мои шашки</label><div class="color-options"><label class="color-option"><input type="radio" name="playerColor" value="w" checked><span class="color-preview"><span class="light-piece"></span></span><span><strong>Белые</strong><br><small style="color:var(--muted)">Хожу первым</small></span></label><label class="color-option"><input type="radio" name="playerColor" value="b"><span class="color-preview"><span class="dark-piece"></span></span><span><strong>Чёрные</strong><br><small style="color:var(--muted)">Компьютер начинает</small></span></label></div><div class="setting-note">При игре чёрными доска автоматически разворачивается, чтобы ваши шашки были внизу.</div><button type="button" class="primary" id="applySettings" style="width:100%;margin-top:16px">Сохранить и начать игру</button></section>
 <section class="card" id="onlinePanel" hidden><div class="status">Игра с другом онлайн</div><div class="hint" id="onlineInfo">Создайте комнату или подключитесь по коду/ссылке.</div><input id="roomCode" placeholder="Код комнаты или ID друга" style="width:100%;margin:10px 0;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><input id="inviteLink" readonly placeholder="Ссылка появится после создания комнаты" style="width:100%;margin:0 0 10px;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><div class="controls"><button class="primary" id="createRoom">Создать комнату</button><button id="joinRoom">Подключиться</button><button id="copyInvite">Копировать ссылку</button><button id="shareInvite">Пригласить друга</button><button id="closeOnline">Выйти из онлайн-игры</button></div></section>
 <div class="footer">Русские шашки · обязательное взятие · дамки</div>
 </div>
-<section class="card settings-panel" id="settingsPanel" role="tabpanel" aria-label="Настройки партии"><div class="settings-title">Настройки партии</div><div class="settings-copy">Выберите цвет шашек, которыми будете играть против компьютера.</div><label class="setting-label">Мои шашки</label><div class="color-options"><label class="color-option"><input type="radio" name="playerColor" value="w" checked><span class="color-preview"><span class="light-piece"></span></span><span><strong>Белые</strong><br><small style="color:var(--muted)">Хожу первым</small></span></label><label class="color-option"><input type="radio" name="playerColor" value="b"><span class="color-preview"><span class="dark-piece"></span></span><span><strong>Чёрные</strong><br><small style="color:var(--muted)">Компьютер начинает</small></span></label></div><div class="setting-note">Цвет применяется к новой партии. При выборе чёрных доска автоматически разворачивается, чтобы ваши шашки были внизу.</div><button type="button" class="primary" id="applySettings" style="width:100%;margin-top:16px">Сохранить и начать игру</button></section>
+
 <div class="result-overlay" id="resultModal" hidden role="dialog" aria-modal="true" aria-labelledby="resultTitle">
   <div class="result-dialog" id="resultDialog">
     <div class="result-icon" id="resultIcon" aria-hidden="true">🏆</div>
@@ -262,18 +261,18 @@ document.getElementById('mode').onclick=()=>{if(online){onlineInfo.textContent='
 document.getElementById('undo').onclick=()=>{if(online){onlineInfo.textContent='Отмена хода в онлайн-партии отключена, чтобы не рассинхронизировать игроков.';return}if(!history.length)return;const s=history.pop();b=s.b;turn=s.turn;gameOver=s.gameOver;selected=null;legal=[];render()};
 document.getElementById('flip').onclick=()=>{flipped=!flipped;render()};
 const mainEl=document.querySelector('main');
-const boardTab=document.getElementById('boardTab'),interfaceTab=document.getElementById('interfaceTab'),settingsTab=document.getElementById('settingsTab');
+const boardTab=document.getElementById('boardTab'),menuTab=document.getElementById('menuTab');
 function switchTab(tab){
  mainEl.dataset.tab=tab;
- const tabs={board:boardTab,interface:interfaceTab,settings:settingsTab};
+ const tabs={board:boardTab,menu:menuTab};
  Object.entries(tabs).forEach(([key,el])=>{const active=key===tab;el.classList.toggle('active',active);el.setAttribute('aria-selected',String(active))});
 }
-boardTab.onclick=()=>switchTab('board');interfaceTab.onclick=()=>switchTab('interface');settingsTab.onclick=()=>switchTab('settings');
+boardTab.onclick=()=>switchTab('board');menuTab.onclick=()=>switchTab('menu');
 document.querySelectorAll('input[name="playerColor"]').forEach(input=>input.checked=input.value===preferredSide);
 document.getElementById('applySettings').onclick=()=>{const chosen=document.querySelector('input[name="playerColor"]:checked');preferredSide=chosen?chosen.value:'w';mySide=preferredSide;try{localStorage.setItem('shashki-player-color',preferredSide)}catch(e){}if(!online&&mode==='cpu'){initial()}else{flipped=preferredSide==='b';render()}switchTab('board')};
 
 if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.ready();window.Telegram.WebApp.expand()}
 initial();
-const incomingPeer=new URL(window.location.href).searchParams.get('peer');if(incomingPeer){switchTab('interface');onlinePanel.hidden=false;roomCode.value=incomingPeer;onlineInfo.textContent='Открыта ссылка-приглашение. Нажмите «Подключиться».'}
+const incomingPeer=new URL(window.location.href).searchParams.get('peer');if(incomingPeer){switchTab('menu');onlinePanel.hidden=false;roomCode.value=incomingPeer;onlineInfo.textContent='Открыта ссылка-приглашение. Нажмите «Подключиться».'}
 })();
 </script></body></html>
