@@ -21,7 +21,13 @@ main{position:relative;z-index:1;width:min(100%,780px);padding:clamp(15px,4vw,24
 main[data-tab="board"] .board-pane{display:block}
 main[data-tab="menu"] .menu-pane{display:flex;flex-direction:column;gap:16px}
 .board-shell{width:100%}
-.board-pane{width:100%}
+.board-pane{width:100%;display:flex;flex-direction:column;gap:12px}
+.board-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.board-color{padding:12px}
+.board-color-title{font-size:14px;font-weight:850;margin:0 0 9px}
+.board-color .color-option{min-height:54px;padding:8px}
+.board-color .color-preview span{width:19px;height:19px}
+@media(min-width:650px){.board-color .color-options{grid-template-columns:1fr 1fr}}
 main[data-tab="board"]{width:min(100%,860px)}
 @media(max-width:390px){.tab-button{font-size:12px;padding:10px 4px}.tabbar{gap:4px;padding:4px}}
 .settings-title{font-size:20px;font-weight:850;letter-spacing:-.4px}
@@ -118,14 +124,16 @@ button .btn-icon{display:inline-block;margin-right:6px;font-size:15px;line-heigh
 <button type="button" class="tab-button" id="menuTab" role="tab" aria-selected="false">☰ Меню</button>
 </nav>
 <div class="pane board-pane" id="boardPane" role="tabpanel" aria-label="Игровая доска">
+<section class="card board-actions"><button class="primary" id="new"><span class="btn-icon">↻</span>Новая игра</button><button id="undo"><span class="btn-icon">↶</span>Отменить ход</button></section>
+<section class="card board-color" aria-label="Выбор цвета шашек"><div class="board-color-title">Мои шашки</div><div class="color-options"><label class="color-option"><input type="radio" name="playerColor" value="w" checked><span class="color-preview"><span class="light-piece"></span></span><span><strong>Белые</strong><br><small style="color:var(--muted)">Хожу первым</small></span></label><label class="color-option"><input type="radio" name="playerColor" value="b"><span class="color-preview"><span class="dark-piece"></span></span><span><strong>Чёрные</strong><br><small style="color:var(--muted)">Компьютер начинает</small></span></label></div><button type="button" class="primary" id="applySettings" style="width:100%;margin-top:10px">Применить цвет и начать</button></section>
 <section class="board-shell"><div class="board" id="board" aria-label="Игровая доска"></div></section>
 </div>
 <div class="pane menu-pane" id="menuPane" role="tabpanel" aria-label="Меню игры">
 <div class="top"><div class="brand"><div class="brand-mark" aria-hidden="true">♟</div><div class="brand-copy"><div class="title">Шашки</div><div class="subtitle">РУССКАЯ КЛАССИКА · 8×8</div></div></div><div class="badge"><span class="live-dot"></span> 1 на 1</div></div>
 <section class="card game-status"><div class="status" id="status">Ход белых</div><div class="hint" id="hint">Выберите шашку, затем клетку для хода.</div></section>
 <section class="players-strip" aria-label="Участники партии"><div class="player-chip" id="playerWhite"><span class="player-disc white-disc" aria-hidden="true"></span><span class="player-copy"><strong>Белые</strong><small id="labelWhite">Вы</small></span><span class="turn-tag">ХОД</span></div><div class="player-chip" id="playerBlack"><span class="player-disc black-disc" aria-hidden="true"></span><span class="player-copy"><strong>Чёрные</strong><small id="labelBlack">Компьютер</small></span><span class="turn-tag">ХОД</span></div></section>
-<section class="card controls"><button class="primary" id="new"><span class="btn-icon">↻</span>Новая игра</button><button id="mode"><span class="btn-icon">♟</span>Режим: против компьютера</button><button id="online"><span class="btn-icon">↗</span>Играть с другом онлайн</button><button id="undo"><span class="btn-icon">↶</span>Отменить ход</button><button id="flip"><span class="btn-icon">⇄</span>Перевернуть доску</button></section>
-<section class="card menu-settings" id="settingsPanel" aria-label="Цвет шашек"><div class="settings-title">Цвет шашек</div><div class="settings-copy">Выберите, за какую сторону играть против компьютера.</div><label class="setting-label">Мои шашки</label><div class="color-options"><label class="color-option"><input type="radio" name="playerColor" value="w" checked><span class="color-preview"><span class="light-piece"></span></span><span><strong>Белые</strong><br><small style="color:var(--muted)">Хожу первым</small></span></label><label class="color-option"><input type="radio" name="playerColor" value="b"><span class="color-preview"><span class="dark-piece"></span></span><span><strong>Чёрные</strong><br><small style="color:var(--muted)">Компьютер начинает</small></span></label></div><div class="setting-note">При игре чёрными доска автоматически разворачивается, чтобы ваши шашки были внизу.</div><button type="button" class="primary" id="applySettings" style="width:100%;margin-top:16px">Сохранить и начать игру</button></section>
+<section class="card controls"><button id="mode"><span class="btn-icon">♟</span>Режим: против компьютера</button><button id="online"><span class="btn-icon">↗</span>Играть с другом онлайн</button><button id="flip"><span class="btn-icon">⇄</span>Перевернуть доску</button></section>
+
 <section class="card" id="onlinePanel" hidden><div class="status">Игра с другом онлайн</div><div class="hint" id="onlineInfo">Создайте комнату или подключитесь по коду/ссылке.</div><input id="roomCode" placeholder="Код комнаты или ID друга" style="width:100%;margin:10px 0;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><input id="inviteLink" readonly placeholder="Ссылка появится после создания комнаты" style="width:100%;margin:0 0 10px;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><div class="controls"><button class="primary" id="createRoom">Создать комнату</button><button id="joinRoom">Подключиться</button><button id="copyInvite">Копировать ссылку</button><button id="shareInvite">Пригласить друга</button><button id="closeOnline">Выйти из онлайн-игры</button></div></section>
 <div class="footer">Русские шашки · обязательное взятие · дамки</div>
 </div>
