@@ -244,7 +244,7 @@ function choose(r,c){if(gameOver||mode==='cpu'&&turn===cpuSide()||online&&turn!=
  if(mustContinueCapture)return;
  if(b[r][c]?.side===turn){const all=allMoves(turn);selected=[r,c];legal=all.filter(m=>m.from[0]===r&&m.from[1]===c);if(!legal.length){selected=null;legal=[]}render();return}
  selected=null;legal=[];render()}
-function cpuMove(){const side=cpuSide();if(gameOver||turn!==side||mode!=='cpu')return;const continuing=selected&&legal.length&&legal.every(m=>m.from[0]===selected[0]&&m.from[1]===selected[1]);const ms=continuing?legal.slice():allMoves(side);if(!ms.length)return;ms.sort((a,z)=>(z.cap?10:0)+(b[z.to[0]][z.to[1]]?.king?1:0)-((a.cap?10:0)+(b[a.to[0]][a.to[1]]?.king?1:0)));perform(ms[0])}
+function cpuMove(){const side=cpuSide();if(gameOver||turn!==side||mode!=='cpu')return;const continuing=selected&&legal.length&&legal.every(m=>m.from[0]===selected[0]&&m.from[1]===selected[1]);const ms=continuing?legal.slice():allMoves(side);if(!ms.length)return;const scored=ms.map(move=>{const captured=move.cap?b[move.cap[0]][move.cap[1]]:null,piece=b[move.from[0]][move.from[1]],promotion=piece&&!piece.king&&((side==='w'&&move.to[0]===0)||(side==='b'&&move.to[0]===7));return {move,score:(move.cap?10+(captured&&captured.king?4:0):0)+(promotion?6:0)+Math.random()*.15}});scored.sort((a,z)=>z.score-a.score);perform(scored[0].move)}
 function updatePlayerStrip(){
  const white=document.getElementById('playerWhite'),black=document.getElementById('playerBlack');
  if(!white||!black)return;
