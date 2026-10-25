@@ -4,6 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#172033"><meta name="description" content="Русские шашки — игра против компьютера или вдвоём на одном устройстве."><title>Шашки</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 :root{--bg:#101827;--panel:#1b263b;--light:#f0d9b5;--dark:#8a5a3b;--accent:#58d6a5}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f7f8fb;font:16px system-ui,Arial,sans-serif;min-height:100vh;display:flex;justify-content:center}
@@ -21,13 +22,16 @@ main{width:min(100%,520px);padding:16px;display:flex;flex-direction:column;gap:1
 <div class="top"><div class="title">♟ Шашки</div><div class="badge">Mini App</div></div>
 <section class="card"><div class="status" id="status">Ход белых</div><div class="hint" id="hint">Выберите шашку, затем клетку для хода.</div></section>
 <div class="board" id="board" aria-label="Игровая доска"></div>
-<section class="card controls"><button class="primary" id="new">Новая игра</button><button id="mode">Режим: против компьютера</button><button id="undo">Отменить ход</button><button id="flip">Перевернуть доску</button></section>
+<section class="card controls"><button class="primary" id="new">Новая игра</button><button id="mode">Режим: против компьютера</button><button id="online">Играть с другом онлайн</button><button id="undo">Отменить ход</button><button id="flip">Перевернуть доску</button></section>
+<section class="card" id="onlinePanel" hidden><div class="status">Игра с другом онлайн</div><div class="hint" id="onlineInfo">Создайте комнату или подключитесь по коду/ссылке.</div><input id="roomCode" placeholder="Код комнаты или ID друга" style="width:100%;margin:10px 0;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><input id="inviteLink" readonly placeholder="Ссылка появится после создания комнаты" style="width:100%;margin:0 0 10px;padding:12px;border-radius:10px;border:1px solid #52627a;background:#101827;color:#fff"><div class="controls"><button class="primary" id="createRoom">Создать комнату</button><button id="joinRoom">Подключиться</button><button id="copyInvite">Копировать ссылку</button><button id="closeOnline">Выйти из онлайн-игры</button></div></section>
 <div class="footer">Русские шашки · обязательное взятие · дамки</div>
 </main>
 <script>
 (function(){
 const boardEl=document.getElementById('board'),statusEl=document.getElementById('status'),hintEl=document.getElementById('hint');
 let b,turn,selected=null,legal=[],history=[],mode='cpu',flipped=false,gameOver=false;
+let online=false,onlinePeer=null,onlineConn=null,mySide='w';
+const onlinePanel=document.getElementById('onlinePanel'),onlineInfo=document.getElementById('onlineInfo'),roomCode=document.getElementById('roomCode'),inviteLink=document.getElementById('inviteLink');
 const dirs=[[-1,-1],[-1,1],[1,-1],[1,1]];
 function initial(){b=Array.from({length:8},()=>Array(8).fill(null));for(let r=0;r<3;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'b',king:false};for(let r=5;r<8;r++)for(let c=0;c<8;c++)if((r+c)%2===1)b[r][c]={side:'w',king:false};turn='w';selected=null;legal=[];history=[];gameOver=false;render();if(mode==='cpu'&&turn==='b')setTimeout(cpuMove,350)}
 function inside(r,c){return r>=0&&r<8&&c>=0&&c<8}
@@ -40,21 +44,33 @@ function allMoves(side){let all=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[
 function save(){history.push({b:b.map(row=>row.map(p=>p?{...p}:null)),turn,gameOver});if(history.length>80)history.shift()}
 function perform(m){save();const [r,c]=m.from,[rr,cc]=m.to,p=b[r][c];b[rr][cc]=p;b[r][c]=null;if(m.cap){const [cr,ccap]=m.cap;b[cr][ccap]=null}
  if((p.side==='w'&&rr===0)||(p.side==='b'&&rr===7))p.king=true;
+ broadcastState();
  if(m.cap){const more=movesFor(rr,cc,true);if(more.length){selected=[rr,cc];legal=more;render();hintEl.textContent='Продолжайте взятие этой шашкой.';return}}
  selected=null;legal=[];turn=turn==='w'?'b':'w';const next=allMoves(turn);if(!next.length){gameOver=true;statusEl.textContent='Победа '+(turn==='w'?'чёрных':'белых')+'!';hintEl.textContent='У соперника не осталось ходов.';render();return}
  render();if(mode==='cpu'&&turn==='b'&&!gameOver)setTimeout(cpuMove,350)}
-function choose(r,c){if(gameOver||mode==='cpu'&&turn==='b')return;
+function choose(r,c){if(gameOver||mode==='cpu'&&turn==='b'||online&&turn!==mySide)return;
  if(selected&&legal.some(m=>m.to[0]===r&&m.to[1]===c)){perform(legal.find(m=>m.to[0]===r&&m.to[1]===c));return}
  if(b[r][c]?.side===turn){const all=allMoves(turn);selected=[r,c];legal=all.filter(m=>m.from[0]===r&&m.from[1]===c);if(!legal.length){selected=null;legal=[]}render();return}
  selected=null;legal=[];render()}
 function cpuMove(){if(gameOver||turn!=='b'||mode!=='cpu')return;const ms=allMoves('b');if(!ms.length)return;ms.sort((a,z)=>(z.cap?10:0)+(b[z.to[0]][z.to[1]]?.king?1:0)-((a.cap?10:0)+(b[a.to[0]][a.to[1]]?.king?1:0)));perform(ms[0])}
 function render(){boardEl.innerHTML='';for(let vr=0;vr<8;vr++)for(let vc=0;vc<8;vc++){const r=flipped?7-vr:vr,c=flipped?7-vc:vc,cell=document.createElement('button');cell.className='cell '+((r+c)%2?'dark':'light');cell.setAttribute('aria-label',String.fromCharCode(65+c)+(8-r));cell.style.padding='0';cell.onclick=()=>choose(r,c);if(selected&&selected[0]===r&&selected[1]===c)cell.classList.add('selected');if(legal.some(m=>m.to[0]===r&&m.to[1]===c))cell.classList.add('move');const p=b[r][c];if(p){const piece=document.createElement('div');piece.className='piece '+(p.side==='w'?'white':'black')+(p.king?' king':'');cell.appendChild(piece)}boardEl.appendChild(cell)}
  if(!gameOver){statusEl.textContent='Ход '+(turn==='w'?'белых':'чёрных');hintEl.textContent=(mode==='cpu'&&turn==='b')?'Компьютер выбирает ход…':'Выберите шашку, затем клетку для хода.'}}
-document.getElementById('new').onclick=initial;
-document.getElementById('mode').onclick=()=>{mode=mode==='cpu'?'local':'cpu';document.getElementById('mode').textContent='Режим: '+(mode==='cpu'?'против компьютера':'2 игрока');initial()};
-document.getElementById('undo').onclick=()=>{if(!history.length)return;const s=history.pop();b=s.b;turn=s.turn;gameOver=s.gameOver;selected=null;legal=[];render()};
+function statePacket(){return {type:'state',b,turn,gameOver};}
+function broadcastState(){if(onlineConn&&onlineConn.open)onlineConn.send(statePacket())}
+function applyPacket(data){if(!data||data.type!=='state'||!Array.isArray(data.b))return;b=data.b;turn=data.turn;gameOver=!!data.gameOver;selected=null;legal=[];history=[];render();if(gameOver)hintEl.textContent='Партия завершена.'}
+function setOnlineConnection(conn,role){onlineConn=conn;online=true;mode='online';mySide=role;conn.on('open',()=>{onlineInfo.textContent=role==='w'?'Друг подключился! Вы играете белыми.':'Подключено! Вы играете чёрными.';if(role==='w')conn.send(statePacket());else conn.send({type:'request-state'});render()});conn.on('data',data=>{if(data?.type==='state')applyPacket(data);else if(data?.type==='request-state'&&role==='w')conn.send(statePacket())});conn.on('close',()=>{onlineInfo.textContent='Связь с другом прервана.';onlineConn=null});conn.on('error',()=>{onlineInfo.textContent='Ошибка соединения. Попробуйте подключиться снова.'})}
+function destroyOnline(){online=false;onlineConn=null;if(onlinePeer){onlinePeer.destroy();onlinePeer=null}mySide='w';onlinePanel.hidden=true;document.getElementById('mode').textContent='Режим: '+(mode==='cpu'?'против компьютера':'2 игрока');}
+document.getElementById('online').onclick=()=>{onlinePanel.hidden=!onlinePanel.hidden;if(!onlinePanel.hidden)onlineInfo.textContent='Создайте комнату и отправьте другу ссылку или введите код друга.'};
+document.getElementById('createRoom').onclick=()=>{if(!window.Peer){onlineInfo.textContent='Не удалось загрузить онлайн-модуль. Проверьте интернет и перезагрузите игру.';return}if(onlinePeer)onlinePeer.destroy();onlineInfo.textContent='Создаём комнату…';onlinePeer=new Peer();onlinePeer.on('open',id=>{roomCode.value=id;const u=new URL(window.location.href);u.searchParams.set('peer',id);inviteLink.value=u.toString();onlineInfo.textContent='Комната создана. Отправьте другу ссылку или код комнаты. Ожидаем подключение…';online=true;mode='online';mySide='w';initial();document.getElementById('mode').textContent='Режим: онлайн'});onlinePeer.on('connection',conn=>{if(onlineConn){conn.close();return}setOnlineConnection(conn,'w')});onlinePeer.on('error',err=>{onlineInfo.textContent='Не удалось создать комнату: '+(err.type||'ошибка соединения')})};
+document.getElementById('joinRoom').onclick=()=>{const id=(roomCode.value||new URL(location.href).searchParams.get('peer')||'').trim();if(!id){onlineInfo.textContent='Введите код комнаты или откройте ссылку-приглашение.';return}if(!window.Peer){onlineInfo.textContent='Не удалось загрузить онлайн-модуль. Проверьте интернет и перезагрузите игру.';return}if(onlinePeer)onlinePeer.destroy();onlineInfo.textContent='Подключаемся к комнате…';onlinePeer=new Peer();onlinePeer.on('open',()=>{const conn=onlinePeer.connect(id,{reliable:true});setOnlineConnection(conn,'b')});onlinePeer.on('error',err=>{onlineInfo.textContent='Не удалось подключиться: '+(err.type||'ошибка соединения')})};
+document.getElementById('copyInvite').onclick=async()=>{const val=inviteLink.value||roomCode.value;if(!val){onlineInfo.textContent='Сначала создайте комнату.';return}try{await navigator.clipboard.writeText(val);onlineInfo.textContent='Ссылка скопирована — отправьте её другу.'}catch(e){inviteLink.focus();inviteLink.select();onlineInfo.textContent='Скопируйте выделенную ссылку вручную.'}};
+document.getElementById('closeOnline').onclick=()=>{destroyOnline();mode='cpu';initial();onlineInfo.textContent='Онлайн-режим закрыт.'};
+document.getElementById('new').onclick=()=>{initial();if(online)broadcastState()};
+document.getElementById('mode').onclick=()=>{if(online){onlineInfo.textContent='Для выхода нажмите «Выйти из онлайн-игры».';return}mode=mode==='cpu'?'local':'cpu';document.getElementById('mode').textContent='Режим: '+(mode==='cpu'?'против компьютера':'2 игрока');initial()};
+document.getElementById('undo').onclick=()=>{if(online){onlineInfo.textContent='Отмена хода в онлайн-партии отключена, чтобы не рассинхронизировать игроков.';return}if(!history.length)return;const s=history.pop();b=s.b;turn=s.turn;gameOver=s.gameOver;selected=null;legal=[];render()};
 document.getElementById('flip').onclick=()=>{flipped=!flipped;render()};
 if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.ready();window.Telegram.WebApp.expand()}
 initial();
+const incomingPeer=new URL(window.location.href).searchParams.get('peer');if(incomingPeer){onlinePanel.hidden=false;roomCode.value=incomingPeer;onlineInfo.textContent='Открыта ссылка-приглашение. Нажмите «Подключиться».'}
 })();
 </script></body></html>
