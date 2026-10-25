@@ -25,12 +25,12 @@ jobs:
           if (web !== android) {
             throw new Error('The web page and Android HTML asset must be identical.');
           }
-          const ids = [...web.matchAll(/\\sid=["']([^"']+)["']/g)].map(match => match[1]);
+          const ids = [...web.matchAll(/\sid=["']([^"']+)["']/g)].map(match => match[1]);
           const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
           if (duplicates.length) {
             throw new Error('Duplicate HTML IDs: ' + duplicates.join(', '));
           }
-          const scripts = [...web.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)]
+          const scripts = [...web.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)]
             .map(match => match[1])
             .filter(source => source.includes('(function(){'));
           if (scripts.length !== 1) {
