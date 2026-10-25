@@ -12,14 +12,18 @@
 html{min-height:100%;background:var(--bg)}
 body{margin:0;min-height:100vh;min-height:100svh;display:flex;justify-content:center;color:var(--text);font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:radial-gradient(ellipse at 14% 0%,rgba(57,96,163,.27),transparent 33%),radial-gradient(ellipse at 100% 38%,rgba(39,129,115,.12),transparent 35%),linear-gradient(155deg,#0b1222 0%,#080d19 62%,#0b1424 100%);overflow-x:hidden}
 body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;background-image:linear-gradient(rgba(171,197,232,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(171,197,232,.055) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,#000,transparent 75%)}
-main{position:relative;z-index:1;width:min(100%,780px);padding:clamp(15px,4vw,24px);padding-bottom:26px;display:flex;flex-direction:column;gap:16px}
+main{position:relative;z-index:1;width:min(100%,860px);padding:66px clamp(15px,4vw,24px) 26px;display:flex;flex-direction:column;gap:16px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:3px 2px 5px}
 .tabbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:5px;border:1px solid var(--line);border-radius:16px;background:rgba(13,22,38,.88)}
 .tab-button{min-height:44px;border:1px solid transparent;background:transparent;box-shadow:none;color:var(--muted);font-weight:850}
 .tab-button.active{color:#06271d;background:linear-gradient(135deg,#8af3c9,#53dca8);border-color:rgba(177,255,221,.75)}
 .pane{display:none;min-width:0}
-main[data-tab="board"] .board-pane{display:block}
-main[data-tab="menu"] .menu-pane{display:flex;flex-direction:column;gap:16px}
+main .board-pane{display:flex;flex-direction:column;gap:12px}
+main .menu-pane{display:none;min-width:0}
+main[data-menu-open="true"] .menu-pane{display:flex;position:fixed;inset:0;z-index:500;flex-direction:column;gap:14px;padding:72px 14px 22px;background:rgba(5,10,19,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow-y:auto}
+.menu-toggle{position:fixed;top:10px;right:10px;z-index:600;width:46px;height:46px;min-height:46px;padding:0;border-radius:14px;display:grid;place-items:center;font-size:21px;color:#f4f7ff;background:rgba(16,29,48,.94);border:1px solid rgba(99,230,180,.4);box-shadow:0 8px 24px #0005}
+.menu-close{width:44px;height:44px;min-height:44px;flex:0 0 44px;padding:0;font-size:20px;border-radius:13px}
+.menu-pane .top{gap:10px}
 .board-shell{width:100%}
 .board-pane{width:100%;display:flex;flex-direction:column;gap:12px}
 .board-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
@@ -113,23 +117,20 @@ button .btn-icon{display:inline-block;margin-right:6px;font-size:15px;line-heigh
 .result-dialog p{font-size:14px;line-height:1.65;color:#aebdd4;margin:12px 0 23px}
 .result-actions{display:grid;grid-template-columns:1.2fr 1fr;gap:9px}
 .result-actions button{width:100%}
-@media(max-width:390px){main{padding:13px;gap:13px}.brand-mark{width:43px;height:43px;flex-basis:43px;border-radius:14px}.subtitle{font-size:9px;letter-spacing:1.1px}.badge{font-size:10px;padding:8px 9px}.game-status{padding:15px}.card{padding:14px}.board-shell{padding:6px}.controls{gap:8px}button{padding:12px 8px;font-size:12px}.result-dialog{padding:24px 17px 19px}.player-chip{padding:10px 8px;gap:7px}.player-disc{width:23px;height:23px;flex-basis:23px}.turn-tag{display:none}}
+@media(max-width:390px){main{padding:60px 13px 20px;gap:13px}.brand-mark{width:43px;height:43px;flex-basis:43px;border-radius:14px}.subtitle{font-size:9px;letter-spacing:1.1px}.badge{font-size:10px;padding:8px 9px}.game-status{padding:15px}.card{padding:14px}.board-shell{padding:6px}.controls{gap:8px}button{padding:12px 8px;font-size:12px}.result-dialog{padding:24px 17px 19px}.player-chip{padding:10px 8px;gap:7px}.player-disc{width:23px;height:23px;flex-basis:23px}.turn-tag{display:none}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 </style>
 </head>
-<body><main data-tab="board">
-<nav class="tabbar" role="tablist" aria-label="Разделы игры">
-<button type="button" class="tab-button active" id="boardTab" role="tab" aria-selected="true">♟ Доска</button>
-<button type="button" class="tab-button" id="menuTab" role="tab" aria-selected="false">☰ Меню</button>
-</nav>
+<body><main data-menu-open="false">
+<button type="button" class="menu-toggle" id="menuToggle" aria-label="Открыть меню" aria-expanded="false" aria-controls="menuPane">☰</button>
 <div class="pane board-pane" id="boardPane" role="tabpanel" aria-label="Игровая доска">
 <section class="card board-actions"><button class="primary" id="new"><span class="btn-icon">↻</span>Новая игра</button><button id="undo"><span class="btn-icon">↶</span>Отменить ход</button></section>
 <section class="card board-color" aria-label="Выбор цвета шашек"><div class="board-color-title">Мои шашки</div><div class="color-options"><label class="color-option"><input type="radio" name="playerColor" value="w" checked><span class="color-preview"><span class="light-piece"></span></span><span><strong>Белые</strong><br><small style="color:var(--muted)">Хожу первым</small></span></label><label class="color-option"><input type="radio" name="playerColor" value="b"><span class="color-preview"><span class="dark-piece"></span></span><span><strong>Чёрные</strong><br><small style="color:var(--muted)">Компьютер начинает</small></span></label></div><button type="button" class="primary" id="applySettings" style="width:100%;margin-top:10px">Применить цвет и начать</button></section>
 <section class="board-shell"><div class="board" id="board" aria-label="Игровая доска"></div></section>
 </div>
 <div class="pane menu-pane" id="menuPane" role="tabpanel" aria-label="Меню игры">
-<div class="top"><div class="brand"><div class="brand-mark" aria-hidden="true">♟</div><div class="brand-copy"><div class="title">Шашки</div><div class="subtitle">РУССКАЯ КЛАССИКА · 8×8</div></div></div><div class="badge"><span class="live-dot"></span> 1 на 1</div></div>
+<div class="top"><div class="brand"><div class="brand-mark" aria-hidden="true">♟</div><div class="brand-copy"><div class="title">Шашки</div><div class="subtitle">РУССКАЯ КЛАССИКА · 8×8</div></div></div><div class="badge"><span class="live-dot"></span> 1 на 1</div><button type="button" id="closeMenu" class="menu-close" aria-label="Закрыть меню">✕</button></div>
 <section class="card game-status"><div class="status" id="status">Ход белых</div><div class="hint" id="hint">Выберите шашку, затем клетку для хода.</div></section>
 <section class="players-strip" aria-label="Участники партии"><div class="player-chip" id="playerWhite"><span class="player-disc white-disc" aria-hidden="true"></span><span class="player-copy"><strong>Белые</strong><small id="labelWhite">Вы</small></span><span class="turn-tag">ХОД</span></div><div class="player-chip" id="playerBlack"><span class="player-disc black-disc" aria-hidden="true"></span><span class="player-copy"><strong>Чёрные</strong><small id="labelBlack">Компьютер</small></span><span class="turn-tag">ХОД</span></div></section>
 <section class="card controls"><button id="mode"><span class="btn-icon">♟</span>Режим: против компьютера</button><button id="online"><span class="btn-icon">↗</span>Играть с другом онлайн</button><button id="flip"><span class="btn-icon">⇄</span>Перевернуть доску</button></section>
@@ -269,18 +270,24 @@ document.getElementById('mode').onclick=()=>{if(online){onlineInfo.textContent='
 document.getElementById('undo').onclick=()=>{if(online){onlineInfo.textContent='Отмена хода в онлайн-партии отключена, чтобы не рассинхронизировать игроков.';return}if(!history.length)return;const s=history.pop();b=s.b;turn=s.turn;gameOver=s.gameOver;selected=null;legal=[];render()};
 document.getElementById('flip').onclick=()=>{flipped=!flipped;render()};
 const mainEl=document.querySelector('main');
-const boardTab=document.getElementById('boardTab'),menuTab=document.getElementById('menuTab');
-function switchTab(tab){
- mainEl.dataset.tab=tab;
- const tabs={board:boardTab,menu:menuTab};
- Object.entries(tabs).forEach(([key,el])=>{const active=key===tab;el.classList.toggle('active',active);el.setAttribute('aria-selected',String(active))});
+const menuToggle=document.getElementById('menuToggle'),menuPane=document.getElementById('menuPane');
+function switchMenu(open){
+ const isOpen=Boolean(open);
+ mainEl.dataset.menuOpen=String(isOpen);
+ menuToggle.setAttribute('aria-expanded',String(isOpen));
+ menuToggle.setAttribute('aria-label',isOpen?'Закрыть меню':'Открыть меню');
+ menuToggle.textContent=isOpen?'×':'☰';
+ if(isOpen)document.getElementById('closeMenu').focus();
 }
-boardTab.onclick=()=>switchTab('board');menuTab.onclick=()=>switchTab('menu');
+menuToggle.onclick=()=>switchMenu(mainEl.dataset.menuOpen!=='true');
+document.getElementById('closeMenu').onclick=()=>switchMenu(false);
+menuPane.addEventListener('click',event=>{if(event.target===menuPane)switchMenu(false)});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&mainEl.dataset.menuOpen==='true')switchMenu(false)});
 document.querySelectorAll('input[name="playerColor"]').forEach(input=>input.checked=input.value===preferredSide);
-document.getElementById('applySettings').onclick=()=>{const chosen=document.querySelector('input[name="playerColor"]:checked');preferredSide=chosen?chosen.value:'w';mySide=preferredSide;try{localStorage.setItem('shashki-player-color',preferredSide)}catch(e){}if(!online&&mode==='cpu'){initial()}else{flipped=preferredSide==='b';render()}switchTab('board')};
+document.getElementById('applySettings').onclick=()=>{const chosen=document.querySelector('input[name="playerColor"]:checked');preferredSide=chosen?chosen.value:'w';mySide=preferredSide;try{localStorage.setItem('shashki-player-color',preferredSide)}catch(e){}if(!online&&mode==='cpu'){initial()}else{flipped=preferredSide==='b';render()}switchMenu(false)};
 
 if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.ready();window.Telegram.WebApp.expand()}
 initial();
-const incomingPeer=new URL(window.location.href).searchParams.get('peer');if(incomingPeer){switchTab('menu');onlinePanel.hidden=false;roomCode.value=incomingPeer;onlineInfo.textContent='Открыта ссылка-приглашение. Нажмите «Подключиться».'}
+const incomingPeer=new URL(window.location.href).searchParams.get('peer');if(incomingPeer){switchMenu(true);onlinePanel.hidden=false;roomCode.value=incomingPeer;onlineInfo.textContent='Открыта ссылка-приглашение. Нажмите «Подключиться».'}
 })();
 </script></body></html>
